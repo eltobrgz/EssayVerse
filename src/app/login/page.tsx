@@ -17,6 +17,7 @@ import { Logo } from '@/components/logo';
 import { login } from '@/app/auth/actions';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useSearchParams } from 'next/navigation';
 
 function LoginButton() {
   const { pending } = useFormStatus();
@@ -29,6 +30,8 @@ function LoginButton() {
 
 export default function LoginPage() {
   const [state, formAction] = useActionState(login, null);
+  const searchParams = useSearchParams();
+  const next = searchParams.get('next');
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
@@ -45,6 +48,7 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent>
             <form action={formAction} className="grid gap-4">
+              {next && <input type="hidden" name="next" value={next} />}
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input

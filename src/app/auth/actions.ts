@@ -12,6 +12,7 @@ export async function login(
 
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
+  const next = (formData.get('next') as string) || '/dashboard';
 
   if (!email || !password) {
     return { message: 'Email and password are required.' };
@@ -23,10 +24,10 @@ export async function login(
   });
 
   if (error) {
-    return { message: error.message };
+    return { message: 'Invalid login credentials.' };
   }
 
-  redirect('/dashboard');
+  redirect(next);
 }
 
 export async function signup(

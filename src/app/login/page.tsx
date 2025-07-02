@@ -2,8 +2,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, type FormEvent } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -17,47 +17,21 @@ import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/logo';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { createClient } from '@/lib/supabase/client';
+import { login } from '@/app/auth/actions';
+
+function LoginButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending ? <Loader2 className="animate-spin" /> : 'Login'}
+    </Button>
+  );
+}
 
 export default function LoginPage() {
   const searchParams = useSearchParams();
-  const urlMessage = searchParams.get('message');
-  
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(urlMessage);
-
-  const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsLoading(true);
-    setError(null);
-
-    const formData = new FormData(event.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    
-    const supabase = createClient();
-
-    try {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (signInError) {
-            throw signInError;
-        }
-
-        // On success, force a HARD redirect to our diagnostic page.
-        // This makes the browser request the page from scratch, sending the new auth cookie.
-        // The middleware will then see the valid session and allow access.
-        window.location.href = '/welcome';
-
-    } catch (err: any) {
-        setError(err.message || 'An unexpected error occurred.');
-    } finally {
-        setIsLoading(false);
-    }
-  };
+  const message = searchParams.get('message');
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
@@ -73,7 +47,7 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleLogin} className="grid gap-4">
+            <form action={login} className="grid gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -82,7 +56,6 @@ export default function LoginPage() {
                   type="email"
                   placeholder="m@example.com"
                   required
-                  disabled={isLoading}
                 />
               </div>
               <div className="grid gap-2">
@@ -95,20 +68,18 @@ export default function LoginPage() {
                     Forgot your password?
                   </Link>
                 </div>
-                <Input id="password" name="password" type="password" required disabled={isLoading} />
+                <Input id="password" name="password" type="password" required />
               </div>
 
-              {error && (
+              {message && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Login Failed</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription>{message}</AlertDescription>
                 </Alert>
               )}
               
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? <Loader2 className="animate-spin" /> : 'Login'}
-              </Button>
+              <LoginButton />
             </form>
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{' '}

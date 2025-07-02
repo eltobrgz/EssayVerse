@@ -12,8 +12,8 @@ export async function GET(request: NextRequest) {
     const supabase = createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      // On successful email confirmation, redirect to the simple welcome page.
-      return NextResponse.redirect(`${origin}/welcome`);
+      // On successful email confirmation, redirect to the dashboard.
+      return NextResponse.redirect(`${origin}/dashboard`);
     }
   }
 

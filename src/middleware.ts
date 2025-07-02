@@ -3,6 +3,8 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  // O objeto `response` é criado aqui e será modificado pelos manipuladores
+  // de cookie abaixo se a sessão precisar ser atualizada.
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -18,17 +20,21 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          // If the cookie is set, update the request cookies as well.
+          // Se o cookie for definido, atualize-o nos cookies da requisição.
+          // Isso é crucial para que os Server Components possam acessar a sessão atualizada.
           request.cookies.set({
             name,
             value,
             ...options,
           })
+          // A resposta é recriada para garantir que ela use o valor atualizado
+          // dos cookies da requisição.
           response = NextResponse.next({
             request: {
               headers: request.headers,
             },
           })
+          // O cookie é definido na resposta para ser enviado de volta ao navegador.
           response.cookies.set({
             name,
             value,
@@ -36,7 +42,7 @@ export async function middleware(request: NextRequest) {
           })
         },
         remove(name: string, options: CookieOptions) {
-          // If the cookie is removed, update the request cookies as well.
+          // Se o cookie for removido, atualize-o nos cookies da requisição.
           request.cookies.delete(name)
           response = NextResponse.next({
             request: {
@@ -49,14 +55,14 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // This will refresh the session if it's expired
+  // Atualiza a sessão do usuário se expirada.
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
 
-  // Define routes that are accessible to everyone, even without authentication
+  // Define rotas que são acessíveis a todos, mesmo sem autenticação
   const publicRoutes = [
     '/',
     '/login',
@@ -70,7 +76,7 @@ export async function middleware(request: NextRequest) {
     (route) => pathname === route || (route !== '/' && pathname.startsWith(route))
   )
 
-  // Define routes that are only for unauthenticated users (e.g., login, signup)
+  // Define rotas que são apenas para usuários não autenticados (ex: login, signup)
   const authRoutes = [
     '/login',
     '/signup',
@@ -79,33 +85,30 @@ export async function middleware(request: NextRequest) {
   ]
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route))
 
-  // If the user is not authenticated and the route is not public, redirect to login
+  // Se o usuário não está autenticado e a rota não é pública, redireciona para o login
   if (!user && !isPublicRoute) {
     const loginUrl = new URL('/login', request.url)
-    // Optionally, you can add a `next` query param to redirect back after login
     loginUrl.searchParams.set('next', pathname)
     return NextResponse.redirect(loginUrl)
   }
 
-  // If the user is authenticated and tries to access an auth route, redirect to dashboard
+  // Se o usuário está autenticado e tenta acessar uma rota de autenticação, redireciona para o dashboard
   if (user && isAuthRoute) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
   
-  // If we've reached this point, the user is either authenticated and accessing a protected route,
-  // or anyone is accessing a public route. We return the response, which may have been
-  // modified by the Supabase client to set a new session cookie.
+  // Retorna a resposta, que pode ter sido modificada pelos manipuladores de cookie.
   return response
 }
 
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
+     * Faz a correspondência de todos os caminhos de solicitação, exceto para os que começam com:
+     * - _next/static (arquivos estáticos)
+     * - _next/image (arquivos de otimização de imagem)
+     * - favicon.ico (arquivo de favicon)
+     * Sinta-se à vontade para modificar este padrão para incluir mais caminhos.
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],

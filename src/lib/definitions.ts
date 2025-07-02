@@ -20,7 +20,7 @@ export type Essay = {
   score: number;
   feedback: string;
   suggestions: string;
-  estimatedGrade: string;
+  estimated_grade: string;
 };
 
 export type CommunityPost = {
@@ -49,3 +49,48 @@ export type UserBadge = {
     created_at: string;
     badges: Badge; // This is for the joined result
 }
+
+// Types for Learning Resources
+export type ResourceType = 'VIDEO' | 'MIND_MAP' | 'QUIZ';
+export type VisibilityType = 'PUBLIC' | 'RESTRICTED';
+
+export type Resource = {
+  id: string;
+  creator_id: string;
+  title: string;
+  description: string | null;
+  resource_type: ResourceType;
+  visibility: VisibilityType;
+  video_url: string | null;
+  image_url: string | null;
+  created_at: string;
+  profiles: Pick<Profile, 'full_name' | 'avatar_url'> | null; // Joined creator profile
+};
+
+export type QuizQuestion = {
+  id: string;
+  resource_id: string;
+  question_text: string;
+  order: number;
+  options: QuizOption[];
+};
+
+export type QuizOption = {
+  id: string;
+  question_id: string;
+  option_text: string;
+  is_correct: boolean;
+};
+
+export type Quiz = Resource & {
+  questions: QuizQuestion[];
+};
+
+export type StudentQuizAttempt = {
+  id: string;
+  student_id: string;
+  quiz_resource_id: string;
+  score: number;
+  total_questions: number;
+  completed_at: string;
+};

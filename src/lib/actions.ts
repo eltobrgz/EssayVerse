@@ -5,7 +5,8 @@ import { scoreEssay } from '@/ai/flows/score-essay';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { createClient } from './supabase/server';
-import { isToday, isYesterday, subDays } from 'date-fns';
+import { isToday, isYesterday } from 'date-fns';
+import type { Quiz, QuizOption, QuizQuestion, Resource } from './definitions';
 
 const EssayFormSchema = z.object({
   title: z.string().min(3, { message: 'Title must be at least 3 characters long.'}),
@@ -21,6 +22,15 @@ const PostFormSchema = z.object({
   video: z.instanceof(File).optional(),
 });
 
+const ResourceFormSchema = z.object({
+    resourceType: z.enum(['VIDEO', 'MIND_MAP', 'QUIZ']),
+    visibility: z.enum(['PUBLIC', 'RESTRICTED']),
+    title: z.string().min(3, 'Title must be at least 3 characters.'),
+    description: z.string().optional(),
+    videoUrl: z.string().optional(),
+    image: z.instanceof(File).optional(),
+});
+
 
 export type State = {
   errors?: {
@@ -30,6 +40,9 @@ export type State = {
     content?: string[];
     image?: string[];
     video?: string[];
+    resourceType?: string[];
+    visibility?: string[];
+    videoUrl?: string[];
   };
   message?: string | null;
 };
@@ -232,7 +245,7 @@ export async function createCommunityPost(prevState: State, formData: FormData) 
   let imageUrl: string | undefined = undefined;
   let videoUrl: string | undefined = undefined;
 
-  const uploadFile = async (file: File, folder: string) => {
+  const uploadFile = async (file: File | undefined, folder: string) => {
     if (file && file.size > 0) {
       const filePath = `${user.id}/${folder}/${Date.now()}-${file.name}`;
       const { error: uploadError } = await supabase.storage.from('community_media').upload(filePath, file);
@@ -271,4 +284,197 @@ export async function createCommunityPost(prevState: State, formData: FormData) 
   } catch (e: any) {
     return { message: e.message || 'An unexpected error occurred.' };
   }
+}
+
+// --- Learning Resources Actions ---
+
+export async function createResource(prevState: State, formData: FormData) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return { message: 'Not authenticated.' };
+  
+  const {data: profile} = await supabase.from('profiles').select('role').eq('id', user.id).single();
+  if (profile?.role !== 'teacher') return { message: 'Only teachers can create resources.' };
+
+  const validatedFields = ResourceFormSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!validatedFields.success) {
+    return { errors: validatedFields.error.flatten().fieldErrors, message: 'Invalid fields.' };
+  }
+
+  const { resourceType, visibility, title, description, videoUrl, image } = validatedFields.data;
+  let resourceImageUrl: string | undefined = undefined;
+
+  // Handle image upload for Mind Maps
+  if (resourceType === 'MIND_MAP') {
+    if (!image || image.size === 0) return { message: 'An image is required for Mind Maps.' };
+    const filePath = `${user.id}/mind_maps/${Date.now()}-${image.name}`;
+    const { error: uploadError } = await supabase.storage.from('learning_resources').upload(filePath, image);
+    if (uploadError) return { message: 'Failed to upload image.' };
+    resourceImageUrl = supabase.storage.from('learning_resources').getPublicUrl(filePath).data.publicUrl;
+  }
+
+  // Insert resource into DB
+  const { data: newResource, error: resourceError } = await supabase.from('resources')
+    .insert({
+      creator_id: user.id,
+      title,
+      description,
+      resource_type: resourceType,
+      visibility,
+      video_url: resourceType === 'VIDEO' ? videoUrl : null,
+      image_url: resourceImageUrl,
+    }).select('id').single();
+
+  if (resourceError || !newResource) return { message: 'Failed to create resource in database.' };
+
+  // Handle Quiz questions and options
+  if (resourceType === 'QUIZ') {
+    const questionsData = [];
+    for (const [key, value] of formData.entries()) {
+        const questionMatch = key.match(/questions\[(\d+)\]\[question_text\]/);
+        if (questionMatch) {
+            const index = parseInt(questionMatch[1], 10);
+            if (!questionsData[index]) questionsData[index] = { options: [] };
+            questionsData[index].question_text = value;
+        }
+
+        const optionMatch = key.match(/questions\[(\d+)\]\[options\]\[(\d+)\]/);
+        if (optionMatch) {
+             const qIndex = parseInt(optionMatch[1], 10);
+             const oIndex = parseInt(optionMatch[2], 10);
+             if (!questionsData[qIndex].options[oIndex]) questionsData[qIndex].options[oIndex] = {};
+             questionsData[qIndex].options[oIndex].option_text = value;
+        }
+
+        const correctOptionMatch = key.match(/questions\[(\d+)\]\[correct_option_index\]/);
+        if (correctOptionMatch) {
+             const qIndex = parseInt(correctOptionMatch[1], 10);
+             const correctIndex = parseInt(value as string, 10);
+             questionsData[qIndex].options.forEach((opt: any, idx: number) => {
+                opt.is_correct = (idx === correctIndex);
+             });
+        }
+    }
+    
+    for (const [qIndex, qData] of questionsData.entries()) {
+      const { data: newQuestion, error: qError } = await supabase.from('quiz_questions')
+        .insert({ resource_id: newResource.id, question_text: qData.question_text, order: qIndex })
+        .select('id').single();
+      
+      if (qError || !newQuestion) return { message: `Failed to create question ${qIndex + 1}.` };
+
+      const optionsToInsert = qData.options.map((opt: any) => ({
+          question_id: newQuestion.id,
+          option_text: opt.option_text,
+          is_correct: opt.is_correct,
+      }));
+
+      const { error: oError } = await supabase.from('quiz_options').insert(optionsToInsert);
+      if (oError) return { message: `Failed to create options for question ${qIndex + 1}.`};
+    }
+  }
+  
+  revalidatePath('/teacher/resources');
+  revalidatePath('/resources');
+  redirect(`/resources/${newResource.id}`);
+}
+
+
+export async function getPublicResources(): Promise<Resource[]> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from('resources')
+        .select('*, profiles(full_name, avatar_url)')
+        .eq('visibility', 'PUBLIC')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching public resources:', error);
+        return [];
+    }
+    return data as unknown as Resource[];
+}
+
+export async function getRestrictedResourcesForStudent(studentId: string): Promise<Resource[]> {
+    const supabase = createClient();
+     const { data, error } = await supabase
+        .from('resources')
+        .select('*, profiles(full_name, avatar_url)')
+        .eq('visibility', 'RESTRICTED')
+        .filter('creator_id', 'in', `(SELECT teacher_id FROM teacher_student_connections WHERE student_id = '${studentId}')`)
+        .order('created_at', { ascending: false });
+    
+    if (error) {
+        console.error('Error fetching restricted resources:', error);
+        return [];
+    }
+    return data as unknown as Resource[];
+}
+
+export async function getResourceById(resourceId: string, userId: string): Promise<Quiz | null> {
+    const supabase = createClient();
+    const { data: resource, error } = await supabase
+        .from('resources')
+        .select('*, profiles(full_name, avatar_url)')
+        .eq('id', resourceId)
+        .single();
+    
+    if (error || !resource) {
+        console.error("Error fetching resource", error);
+        return null;
+    }
+
+    if (resource.resource_type === 'QUIZ') {
+        const { data: questions, error: qError } = await supabase
+            .from('quiz_questions')
+            .select('*, options:quiz_options(*)')
+            .eq('resource_id', resourceId)
+            .order('order', { ascending: true });
+        
+        if (qError) {
+             console.error("Error fetching questions", qError);
+             return null;
+        }
+        (resource as unknown as Quiz).questions = questions as (QuizQuestion & { options: QuizOption[] })[];
+    }
+    
+    return resource as unknown as Quiz;
+}
+
+export async function submitQuizAttempt(quizId: string, answers: Record<string, string>): Promise<{ score: number, total: number }> {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) throw new Error("User not authenticated");
+
+    const { data: questions } = await supabase
+        .from('quiz_questions')
+        .select('id, options:quiz_options(id, is_correct)')
+        .eq('resource_id', quizId);
+    
+    if (!questions) throw new Error("Quiz not found or has no questions.");
+
+    let score = 0;
+    for (const question of questions) {
+        const correctOption = question.options.find(o => o.is_correct);
+        const userAnswer = answers[question.id];
+        if (correctOption && userAnswer === correctOption.id) {
+            score++;
+        }
+    }
+    
+    const total = questions.length;
+    
+    // Save attempt to DB
+    await supabase.from('student_quiz_attempts').upsert({
+        student_id: user.id,
+        quiz_resource_id: quizId,
+        score,
+        total_questions: total,
+        completed_at: new Date().toISOString()
+    });
+
+    revalidatePath(`/resources/${quizId}`);
+    return { score, total };
 }

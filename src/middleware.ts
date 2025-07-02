@@ -1,71 +1,72 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { NextResponse, type NextRequest } from 'next/server';
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  // Create a response object that we can modify and return
-  const response = NextResponse.next({
+  const { pathname } = request.nextUrl
+
+  // Define public and authentication routes that do not require a logged-in user
+  const publicRoutes = [
+    '/', // Landing page
+    '/login',
+    '/signup',
+    '/forgot-password',
+    '/auth/callback',
+    '/auth/update-password'
+  ]
+
+  // Determine if the current route is a public or auth route
+  const isPublicRoute = publicRoutes.some(route => 
+    pathname === route || (route !== '/' && pathname.startsWith(route))
+  )
+  
+  const isAuthRoute = [
+    '/login', 
+    '/signup', 
+    '/forgot-password', 
+    '/auth/update-password'
+  ].some(route => pathname.startsWith(route))
+
+  // Create a response object that can be modified
+  let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
-  });
+  })
 
+  // Create a Supabase client that can read and write cookies
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          // The `set` method is called by Supabase when a session is updated.
-          // We forward this to the response so the browser can update its cookies.
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          });
-        },
-        remove(name: string, options: CookieOptions) {
-          // The `remove` method is called by Supabase when a session is deleted.
-          // We forward this to the response so the browser can delete its cookies.
-          response.cookies.set({
-            name,
-            value: '',
-            ...options,
-          });
-        },
+        get: (name) => request.cookies.get(name)?.value,
+        set: (name, value, options) => response.cookies.set({ name, value, ...options }),
+        remove: (name, options) => response.cookies.set({ name, value: '', ...options }),
       },
     }
-  );
+  )
 
-  // Refresh session if expired - required for Server Components
-  // This will also update the session cookie if it has expired.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Refresh session and get user data. This is crucial for Server Components.
+  const { data: { user } } = await supabase.auth.getUser()
 
-  const { pathname } = request.nextUrl;
-  
-  const protectedRoutes = ['/dashboard', '/essays', '/submit-essay', '/community', '/progress', '/profile', '/resources', '/teacher', '/welcome'];
-  const authRoutes = ['/login', '/signup'];
-
-  // Redirect logged-in users from auth routes to the dashboard
-  if (user && authRoutes.some((route) => pathname.startsWith(route))) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+  if (user && isAuthRoute) {
+    // If a logged-in user tries to access an auth page (e.g., login),
+    // redirect them to the dashboard.
+    return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
-  // Redirect unauthenticated users from protected routes to the login page
-  if (!user && protectedRoutes.some((route) => pathname.startsWith(route))) {
+  if (!user && !isPublicRoute) {
+    // If a non-logged-in user tries to access a protected page,
+    // redirect them to the login page.
     const loginUrl = new URL('/login', request.url);
-    if (pathname !== '/') {
-        loginUrl.searchParams.set('next', pathname);
-    }
+    loginUrl.searchParams.set('next', pathname); // Optionally, pass the intended destination
     return NextResponse.redirect(loginUrl);
   }
 
-  // Return the response object, which may have new cookies set.
-  return response;
+  // The request is allowed.
+  // The response object might have an updated session cookie from `getUser()`.
+  // It's crucial to return this response to set the cookie in the browser.
+  return response
 }
 
 export const config = {
@@ -79,4 +80,4 @@ export const config = {
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
-};
+}

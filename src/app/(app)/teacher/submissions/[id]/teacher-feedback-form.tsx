@@ -1,6 +1,7 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useEffect, useRef } from 'react';
+import { useFormStatus } from 'react-dom';
 import {
   CardContent,
   CardFooter,
@@ -13,7 +14,6 @@ import { Input } from '@/components/ui/input';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { submitTeacherFeedback, type State } from '@/lib/actions';
 import type { Essay } from '@/lib/definitions';
-import { useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 function SubmitButton() {
@@ -32,7 +32,7 @@ function SubmitButton() {
 
 export function TeacherFeedbackForm({ essay }: { essay: Essay }) {
   const initialState: State = { message: null, errors: {} };
-  const [state, dispatch] = useFormState(submitTeacherFeedback, initialState);
+  const [state, dispatch] = useActionState(submitTeacherFeedback, initialState);
   const formRef = useRef<HTMLFormElement>(null);
   const { toast } = useToast();
 

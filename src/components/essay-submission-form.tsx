@@ -1,6 +1,7 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -23,7 +24,7 @@ function SubmitButton() {
 
 export function EssaySubmissionForm() {
   const initialState = { message: null, errors: {} };
-  const [state, dispatch] = useFormState(submitAndScoreEssay, initialState);
+  const [state, dispatch] = useActionState(submitAndScoreEssay, initialState);
 
   return (
     <form action={dispatch}>

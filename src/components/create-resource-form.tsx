@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useState } from 'react';
+import { useFormStatus } from 'react-dom';
 import {
   Card,
   CardContent,
@@ -55,7 +55,7 @@ export function CreateResourceForm() {
     },
   ]);
   const initialState = { message: null, errors: {} };
-  const [state, dispatch] = useFormState(createResource, initialState);
+  const [state, dispatch] = useActionState(createResource, initialState);
 
   const handleAddQuestion = () => {
     setQuestions([

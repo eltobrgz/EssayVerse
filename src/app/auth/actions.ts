@@ -24,6 +24,7 @@ export async function login(
   });
 
   if (error) {
+    // Return a more generic error message for security
     return { message: 'Invalid login credentials.' };
   }
 
@@ -31,7 +32,7 @@ export async function login(
 }
 
 export async function signup(
-  prevState: { message: string, success?: boolean } | null,
+  prevState: { message: string; success?: boolean } | null,
   formData: FormData
 ) {
   const supabase = createClient();
@@ -39,6 +40,7 @@ export async function signup(
   const fullName = formData.get('fullName') as string;
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
+  const origin = new URL(process.env.NEXT_PUBLIC_BASE_URL!).origin;
 
   if (!fullName || !email || !password) {
     return { message: 'Full name, email and password are required.' };
@@ -51,32 +53,31 @@ export async function signup(
       data: {
         full_name: fullName,
       },
-      // This is the default, but it's good to be explicit
-      // The user will be sent a confirmation email.
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback`,
+      emailRedirectTo: `${origin}/auth/callback`,
     },
   });
 
   if (error) {
     return { message: error.message };
   }
-  
-  // If the user is created but needs to confirm their email, 
-  // we don't get a session. This is the state we want to inform the user about.
+
   if (data.user && !data.session) {
-    return { 
-      message: 'Please check your email to confirm your account before logging in.',
+    return {
+      message:
+        'Please check your email to confirm your account before logging in.',
       success: true,
     };
   }
 
-  // If for some reason auto-confirmation is on, and we get a session, we redirect.
+  // This case should ideally not happen if email confirmation is on,
+  // but if it is, we redirect.
   if (data.session) {
     redirect('/dashboard');
   }
 
-  // Fallback for any other unexpected case
-  return { message: 'An unexpected error occurred. Please try again.' };
+  return {
+    message: 'An unexpected error occurred. Please try again.',
+  };
 }
 
 export async function logout() {

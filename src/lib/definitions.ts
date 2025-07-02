@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export type Profile = {
   id: string;
   full_name: string;
@@ -117,3 +119,12 @@ export type State = {
   };
   message?: string | null;
 };
+
+// Types for AI Chat Tutor
+export const ChatHistorySchema = z.array(
+  z.object({
+    role: z.enum(['user', 'model']),
+    content: z.string(),
+  })
+);
+export type ChatHistory = z.infer<typeof ChatHistorySchema>;

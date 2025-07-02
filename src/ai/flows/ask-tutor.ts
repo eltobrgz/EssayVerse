@@ -9,16 +9,7 @@
 
 import { ai } from '@/ai/genkit';
 import type { MessageData } from 'genkit';
-import { z } from 'zod';
-
-// Define the schema for chat history publicly, so client can use it.
-export const ChatHistorySchema = z.array(
-  z.object({
-    role: z.enum(['user', 'model']),
-    content: z.string(),
-  })
-);
-export type ChatHistory = z.infer<typeof ChatHistorySchema>;
+import type { ChatHistory } from '@/lib/definitions';
 
 export async function askTutor(history: ChatHistory): Promise<string> {
   const systemPrompt = `You are "Verse", a friendly and encouraging AI writing tutor. You are embedded in an application called EssayVerse. Your goal is to help high school and university students improve their writing skills.

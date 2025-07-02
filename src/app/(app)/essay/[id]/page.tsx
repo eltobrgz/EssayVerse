@@ -45,7 +45,7 @@ export default async function EssayPage({ params }: { params: { id: string } }) 
             <CardTitle className="font-headline text-2xl">{essay.title}</CardTitle>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <Badge variant="secondary">{essay.type}</Badge>
-              <span>Submitted on {format(new Date(essay.created_at), 'MMMM d, yyyy')}</span>
+              <span>Enviado em {format(new Date(essay.created_at), 'd \'de\' MMMM \'de\' yyyy')}</span>
             </div>
           </CardHeader>
           <CardContent>
@@ -77,7 +77,7 @@ export default async function EssayPage({ params }: { params: { id: string } }) 
                         Feedback do Professor
                     </CardTitle>
                     <CardDescription>
-                        Avaliação manual feita em {format(new Date(essay.reviewed_by_teacher_at!), 'MMMM d, yyyy')}
+                        Avaliação manual feita em {format(new Date(essay.reviewed_by_teacher_at!), 'd \'de\' MMMM \'de\' yyyy')}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>

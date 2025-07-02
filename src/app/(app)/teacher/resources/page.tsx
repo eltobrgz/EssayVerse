@@ -11,6 +11,7 @@ import { PlusCircle, Video, BrainCircuit, ListChecks } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 
 const ICONS = {
@@ -58,7 +59,7 @@ export default async function TeacherResourcesPage() {
                 {resource.title}
               </CardTitle>
               <CardDescription>
-                Criado em {format(new Date(resource.created_at), 'dd/MM/yyyy')}
+                Criado em {format(new Date(resource.created_at), 'dd/MM/yyyy', { locale: ptBR })}
               </CardDescription>
             </CardHeader>
             <CardContent>

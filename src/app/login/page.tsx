@@ -24,7 +24,7 @@ function LoginButton() {
 
   return (
     <Button type="submit" className="w-full" disabled={pending}>
-      {pending ? <Loader2 className="animate-spin" /> : 'Login'}
+      {pending ? <Loader2 className="animate-spin" /> : 'Entrar'}
     </Button>
   );
 }
@@ -41,9 +41,9 @@ export default function LoginPage() {
         </div>
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-headline">Login</CardTitle>
+            <CardTitle className="text-2xl font-headline">Entrar</CardTitle>
             <CardDescription>
-              Enter your email below to login to your account
+              Digite seu email abaixo para entrar na sua conta
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -54,18 +54,18 @@ export default function LoginPage() {
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="m@exemplo.com"
                   required
                 />
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">Senha</Label>
                   <Link
                     href="#"
                     className="ml-auto inline-block text-sm underline"
                   >
-                    Forgot your password?
+                    Esqueceu sua senha?
                   </Link>
                 </div>
                 <Input id="password" name="password" type="password" required />
@@ -74,7 +74,7 @@ export default function LoginPage() {
               {message && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Login Failed</AlertTitle>
+                  <AlertTitle>Falha no Login</AlertTitle>
                   <AlertDescription>{message}</AlertDescription>
                 </Alert>
               )}
@@ -82,9 +82,9 @@ export default function LoginPage() {
               <LoginButton />
             </form>
             <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{' '}
+              Não tem uma conta?{' '}
               <Link href="/signup" className="underline">
-                Sign up
+                Cadastre-se
               </Link>
             </div>
           </CardContent>

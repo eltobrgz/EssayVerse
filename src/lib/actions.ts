@@ -10,14 +10,14 @@ import { isToday, isYesterday } from 'date-fns';
 import type { Essay, Profile, Quiz, QuizOption, QuizQuestion, Resource, State } from './definitions';
 
 const EssayFormSchema = z.object({
-  title: z.string().min(3, { message: 'Title must be at least 3 characters long.'}),
-  essayType: z.string({ required_error: 'Please select an essay type.'}),
-  essayText: z.string().min(100, { message: 'Essay must be at least 100 characters long.' }),
+  title: z.string().min(3, { message: 'O título deve ter pelo menos 3 caracteres.'}),
+  essayType: z.string({ required_error: 'Por favor, selecione um tipo de redação.'}),
+  essayText: z.string().min(100, { message: 'A redação deve ter pelo menos 100 caracteres.' }),
   image: z.any().optional(),
 });
 
 const PostFormSchema = z.object({
-  title: z.string().min(5, { message: 'Title must be at least 5 characters long.'}),
+  title: z.string().min(5, { message: 'O título deve ter pelo menos 5 caracteres.'}),
   content: z.string().optional(),
   image: z.instanceof(File).optional(),
   video: z.instanceof(File).optional(),
@@ -26,7 +26,7 @@ const PostFormSchema = z.object({
 const ResourceFormSchema = z.object({
     resourceType: z.enum(['VIDEO', 'MIND_MAP', 'QUIZ']),
     visibility: z.enum(['PUBLIC', 'RESTRICTED']),
-    title: z.string().min(3, 'Title must be at least 3 characters.'),
+    title: z.string().min(3, 'O título deve ter pelo menos 3 caracteres.'),
     description: z.string().optional(),
     videoUrl: z.string().optional(),
     image: z.instanceof(File).optional(),
@@ -34,7 +34,7 @@ const ResourceFormSchema = z.object({
 
 const TeacherFeedbackSchema = z.object({
   essayId: z.string(),
-  feedbackText: z.string().min(10, { message: 'Feedback must be at least 10 characters long.'}),
+  feedbackText: z.string().min(10, { message: 'O feedback deve ter pelo menos 10 caracteres.'}),
   correctedImage: z.instanceof(File).optional(),
 });
 
@@ -81,7 +81,7 @@ export async function submitAndScoreEssay(prevState: State, formData: FormData) 
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return { message: 'Authentication error. Please log in again.' };
+    return { message: 'Erro de autenticação. Por favor, faça login novamente.' };
   }
   
   const validatedFields = EssayFormSchema.safeParse({
@@ -94,7 +94,7 @@ export async function submitAndScoreEssay(prevState: State, formData: FormData) 
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Failed to validate essay. Please check the fields.',
+      message: 'Falha ao validar a redação. Por favor, verifique os campos.',
     };
   }
 
@@ -106,7 +106,7 @@ export async function submitAndScoreEssay(prevState: State, formData: FormData) 
     const { error: uploadError } = await supabase.storage.from('essay_images').upload(filePath, image);
     if (uploadError) {
       console.error('Error uploading image:', uploadError);
-      return { message: 'Failed to upload image. Please try again.' };
+      return { message: 'Falha ao enviar a imagem. Por favor, tente novamente.' };
     }
     const { data: { publicUrl } } = supabase.storage.from('essay_images').getPublicUrl(filePath);
     imageUrl = publicUrl;
@@ -134,7 +134,7 @@ export async function submitAndScoreEssay(prevState: State, formData: FormData) 
 
     if (error || !newEssay) {
       console.error('Error saving essay to DB:', error);
-      return { message: 'Failed to save your essay after scoring. Please try again.' };
+      return { message: 'Falha ao salvar sua redação após a correção. Por favor, tente novamente.' };
     }
 
     // 2. Gamification Logic
@@ -169,7 +169,7 @@ export async function submitAndScoreEssay(prevState: State, formData: FormData) 
 
   } catch (error) {
     console.error('Error scoring essay:', error);
-    return { message: 'An unexpected error occurred while scoring the essay. Please try again.' };
+    return { message: 'Ocorreu um erro inesperado ao corrigir a redação. Por favor, tente novamente.' };
   }
 }
 
@@ -213,7 +213,7 @@ export async function createCommunityPost(prevState: State, formData: FormData) 
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return { message: 'Authentication error. Please log in again.' };
+    return { message: 'Erro de autenticação. Por favor, faça login novamente.' };
   }
 
   const validatedFields = PostFormSchema.safeParse({
@@ -226,7 +226,7 @@ export async function createCommunityPost(prevState: State, formData: FormData) 
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Failed to validate post. Please check the fields.',
+      message: 'Falha ao validar o post. Por favor, verifique os campos.',
     };
   }
   
@@ -241,7 +241,7 @@ export async function createCommunityPost(prevState: State, formData: FormData) 
 
       if (uploadError) {
         console.error('Upload Error:', uploadError);
-        throw new Error(`Failed to upload ${folder}. Please try again.`);
+        throw new Error(`Falha ao enviar o arquivo. Por favor, tente novamente.`);
       }
 
       const { data: { publicUrl } } = supabase.storage.from('community_media').getPublicUrl(filePath);
@@ -264,14 +264,14 @@ export async function createCommunityPost(prevState: State, formData: FormData) 
 
     if (insertError) {
       console.error('Insert Error:', insertError);
-      return { message: 'Database error: Failed to create post.' };
+      return { message: 'Erro no banco de dados: Falha ao criar o post.' };
     }
 
     revalidatePath('/community');
-    return { message: 'Post created successfully.' };
+    return { message: 'Post criado com sucesso.' };
 
   } catch (e: any) {
-    return { message: e.message || 'An unexpected error occurred.' };
+    return { message: e.message || 'Ocorreu um erro inesperado.' };
   }
 }
 
@@ -281,14 +281,14 @@ export async function createResource(prevState: State, formData: FormData) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) return { message: 'Not authenticated.' };
+  if (!user) return { message: 'Não autenticado.' };
   
   const {data: profile} = await supabase.from('profiles').select('role').eq('id', user.id).single();
-  if (profile?.role !== 'teacher') return { message: 'Only teachers can create resources.' };
+  if (profile?.role !== 'teacher') return { message: 'Apenas professores podem criar recursos.' };
 
   const validatedFields = ResourceFormSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!validatedFields.success) {
-    return { errors: validatedFields.error.flatten().fieldErrors, message: 'Invalid fields.' };
+    return { errors: validatedFields.error.flatten().fieldErrors, message: 'Campos inválidos.' };
   }
 
   const { resourceType, visibility, title, description, videoUrl, image } = validatedFields.data;
@@ -296,10 +296,10 @@ export async function createResource(prevState: State, formData: FormData) {
 
   // Handle image upload for Mind Maps
   if (resourceType === 'MIND_MAP') {
-    if (!image || image.size === 0) return { message: 'An image is required for Mind Maps.' };
+    if (!image || image.size === 0) return { message: 'Uma imagem é obrigatória para Mapas Mentais.' };
     const filePath = `${user.id}/mind_maps/${Date.now()}-${image.name}`;
     const { error: uploadError } = await supabase.storage.from('learning_resources').upload(filePath, image);
-    if (uploadError) return { message: 'Failed to upload image.' };
+    if (uploadError) return { message: 'Falha ao enviar a imagem.' };
     resourceImageUrl = supabase.storage.from('learning_resources').getPublicUrl(filePath).data.publicUrl;
   }
 
@@ -315,7 +315,7 @@ export async function createResource(prevState: State, formData: FormData) {
       image_url: resourceImageUrl,
     }).select('id').single();
 
-  if (resourceError || !newResource) return { message: 'Failed to create resource in database.' };
+  if (resourceError || !newResource) return { message: 'Falha ao criar o recurso no banco de dados.' };
 
   // Handle Quiz questions and options
   if (resourceType === 'QUIZ') {
@@ -351,7 +351,7 @@ export async function createResource(prevState: State, formData: FormData) {
         .insert({ resource_id: newResource.id, question_text: qData.question_text, order: qIndex })
         .select('id').single();
       
-      if (qError || !newQuestion) return { message: `Failed to create question ${qIndex + 1}.` };
+      if (qError || !newQuestion) return { message: `Falha ao criar a questão ${qIndex + 1}.` };
 
       const optionsToInsert = qData.options.map((opt: any) => ({
           question_id: newQuestion.id,
@@ -360,7 +360,7 @@ export async function createResource(prevState: State, formData: FormData) {
       }));
 
       const { error: oError } = await supabase.from('quiz_options').insert(optionsToInsert);
-      if (oError) return { message: `Failed to create options for question ${qIndex + 1}.`};
+      if (oError) return { message: `Falha ao criar as opções para a questão ${qIndex + 1}.`};
     }
   }
   
@@ -435,14 +435,14 @@ export async function submitQuizAttempt(quizId: string, answers: Record<string, 
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) throw new Error("User not authenticated");
+    if (!user) throw new Error("Usuário não autenticado");
 
     const { data: questions } = await supabase
         .from('quiz_questions')
         .select('id, options:quiz_options(id, is_correct)')
         .eq('resource_id', quizId);
     
-    if (!questions) throw new Error("Quiz not found or has no questions.");
+    if (!questions) throw new Error("Quiz não encontrado ou sem questões.");
 
     let score = 0;
     for (const question of questions) {
@@ -529,7 +529,7 @@ export async function submitTeacherFeedback(prevState: State, formData: FormData
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user || (await supabase.from('profiles').select('role').eq('id', user.id).single()).data?.role !== 'teacher') {
-    return { message: 'Only teachers can submit feedback.' };
+    return { message: 'Apenas professores podem enviar feedback.' };
   }
 
   const validatedFields = TeacherFeedbackSchema.safeParse({
@@ -539,7 +539,7 @@ export async function submitTeacherFeedback(prevState: State, formData: FormData
   });
 
   if (!validatedFields.success) {
-    return { errors: validatedFields.error.flatten().fieldErrors, message: 'Invalid fields.' };
+    return { errors: validatedFields.error.flatten().fieldErrors, message: 'Campos inválidos.' };
   }
 
   const { essayId, feedbackText, correctedImage } = validatedFields.data;
@@ -550,7 +550,7 @@ export async function submitTeacherFeedback(prevState: State, formData: FormData
     const { error: uploadError } = await supabase.storage.from('corrected_essay_images').upload(filePath, correctedImage);
     if (uploadError) {
       console.error('Error uploading corrected image:', uploadError);
-      return { message: 'Failed to upload corrected image.' };
+      return { message: 'Falha ao enviar a imagem corrigida.' };
     }
     correctedImageUrl = supabase.storage.from('corrected_essay_images').getPublicUrl(filePath).data.publicUrl;
   }
@@ -566,7 +566,7 @@ export async function submitTeacherFeedback(prevState: State, formData: FormData
   
   if (updateError) {
     console.error('Error updating essay with feedback:', updateError);
-    return { message: 'Failed to save feedback.' };
+    return { message: 'Falha ao salvar o feedback.' };
   }
 
   revalidatePath('/teacher/submissions');
@@ -634,7 +634,7 @@ export async function sendConnectionRequest(formData: FormData) {
     const teacherId = formData.get('teacherId') as string;
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { message: 'Not authenticated.' };
+    if (!user) return { message: 'Não autenticado.' };
     
     const { data: existing } = await supabase
         .from('teacher_student_connections')

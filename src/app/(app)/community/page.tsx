@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/card';
 import { createClient } from '@/lib/supabase/server';
 import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import Link from 'next/link';
 import Image from 'next/image';
 import { CommunityPostDialog } from '@/components/community-post-dialog';
@@ -28,9 +29,9 @@ export default async function CommunityPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold font-headline">Community Forum</h1>
+          <h1 className="text-3xl font-bold font-headline">Fórum da Comunidade</h1>
           <p className="text-muted-foreground">
-            Ask questions, share feedback, and learn together.
+            Faça perguntas, compartilhe feedback e aprendam juntos.
           </p>
         </div>
         <CommunityPostDialog />
@@ -52,11 +53,12 @@ export default async function CommunityPage() {
                     <Link href="#">{post.title}</Link>
                   </CardTitle>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>{post.profiles?.full_name || 'Anonymous'}</span>
+                    <span>{post.profiles?.full_name || 'Anônimo'}</span>
                     <span>&middot;</span>
                     <span>
                       {formatDistanceToNow(new Date(post.created_at), {
                         addSuffix: true,
+                        locale: ptBR,
                       })}
                     </span>
                   </div>
@@ -71,7 +73,7 @@ export default async function CommunityPage() {
                 <div className="relative mt-4 aspect-video w-full max-w-lg overflow-hidden rounded-lg border">
                   <Image
                     src={post.image_url}
-                    alt={`Image for post: ${post.title}`}
+                    alt={`Imagem para o post: ${post.title}`}
                     fill
                     className="object-cover"
                     data-ai-hint="community post"
@@ -90,7 +92,7 @@ export default async function CommunityPage() {
             </CardContent>
             <CardFooter>
               <Button variant="ghost" size="sm" className="ml-auto">
-                View Post
+                Ver Post
               </Button>
             </CardFooter>
           </Card>
@@ -98,7 +100,7 @@ export default async function CommunityPage() {
         {posts?.length === 0 && (
           <Card>
             <CardContent className="pt-6 text-center text-muted-foreground">
-              <p>No posts yet. Be the first to start a conversation!</p>
+              <p>Nenhum post ainda. Seja o primeiro a iniciar uma conversa!</p>
             </CardContent>
           </Card>
         )}

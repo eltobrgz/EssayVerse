@@ -11,58 +11,58 @@ export default function Home() {
         <Logo />
         <nav className="flex items-center gap-4">
           <Button variant="ghost" asChild>
-            <Link href="/login">Log In</Link>
+            <Link href="/login">Entrar</Link>
           </Button>
           <Button asChild>
-            <Link href="/signup">Get Started</Link>
+            <Link href="/signup">Começar</Link>
           </Button>
         </nav>
       </header>
       <main className="flex-1">
         <section className="container mx-auto px-4 sm:px-6 lg:px-8 text-center py-20 md:py-32">
           <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tighter mb-4">
-            Master Your Writing with AI Precision
+            Domine Sua Escrita com Precisão de IA
           </h1>
           <p className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground mb-8">
-            EssayVerse provides instant, AI-powered feedback to help you elevate your essays. Get scores, suggestions, and track your progress to unlock your full potential.
+            O EssayVerse fornece feedback instantâneo com IA para ajudar você a elevar suas redações. Obtenha notas, sugestões e acompanhe seu progresso para liberar todo o seu potencial.
           </p>
           <Button size="lg" asChild>
-            <Link href="/signup">Start Improving Today</Link>
+            <Link href="/signup">Comece a Melhorar Hoje</Link>
           </Button>
         </section>
 
         <section className="bg-card py-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-center font-headline mb-12">
-              Everything You Need to Succeed
+              Tudo o Que Você Precisa para Ter Sucesso
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               <FeatureCard
                 icon={<Zap className="w-8 h-8 text-primary" />}
-                title="Instant AI Scoring"
-                description="Submit your essay and get an immediate score and detailed feedback."
+                title="Correção Instantânea por IA"
+                description="Envie sua redação e receba uma nota imediata e feedback detalhado."
               />
               <FeatureCard
                 icon={<CheckCircle className="w-8 h-8 text-primary" />}
-                title="Actionable Suggestions"
-                description="Receive concrete tips on how to improve grammar, structure, and clarity."
+                title="Sugestões Práticas"
+                description="Receba dicas concretas sobre como melhorar gramática, estrutura e clareza."
               />
               <FeatureCard
                 icon={<BarChart className="w-8 h-8 text-primary" />}
-                title="Track Your Progress"
-                description="Visualize your improvement over time with insightful charts and analytics."
+                title="Acompanhe seu Progresso"
+                description="Visualize sua melhoria ao longo do tempo com gráficos e análises detalhadas."
               />
               <FeatureCard
                 icon={<Users className="w-8 h-8 text-primary" />}
-                title="Community Forum"
-                description="Connect with peers and educators to share knowledge and get advice."
+                title="Fórum da Comunidade"
+                description="Conecte-se com colegas e educadores para compartilhar conhecimento e obter conselhos."
               />
             </div>
           </div>
         </section>
       </main>
       <footer className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} EssayVerse. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} EssayVerse. Todos os direitos reservados.</p>
       </footer>
     </div>
   );

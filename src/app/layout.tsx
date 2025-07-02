@@ -8,8 +8,8 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-body" });
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-headline" });
 
 export const metadata: Metadata = {
-  title: "EssayVerse - AI-Powered Essay Scoring and Feedback",
-  description: "Improve your writing with AI-powered instant essay scoring, feedback, and progress tracking.",
+  title: "EssayVerse - Correção de Redação com Inteligência Artificial",
+  description: "Aprimore sua escrita com correção instantânea, feedback e acompanhamento de progresso com tecnologia de IA.",
 };
 
 export default function RootLayout({
@@ -18,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

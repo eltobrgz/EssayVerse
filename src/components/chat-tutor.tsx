@@ -44,8 +44,8 @@ export function ChatTutor() {
       console.error('Error with AI Tutor:', error);
       toast({
         variant: 'destructive',
-        title: 'AI Tutor Error',
-        description: 'Sorry, I couldn\'t get a response. Please try again later.',
+        title: 'Erro no Tutor IA',
+        description: 'Desculpe, não consegui obter uma resposta. Por favor, tente novamente mais tarde.',
       });
       // Remove the user's message if the API call fails
       setMessages(messages);
@@ -68,7 +68,7 @@ export function ChatTutor() {
       )}>
         <Button onClick={() => setIsOpen(true)} size="lg" className="rounded-full h-16 w-16 shadow-lg">
           <MessageSquarePlus className="h-8 w-8" />
-          <span className="sr-only">Open AI Tutor</span>
+          <span className="sr-only">Abrir Tutor IA</span>
         </Button>
       </div>
 

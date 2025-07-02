@@ -32,7 +32,6 @@ export default async function ResourcePage({ params }: { params: { id: string } 
             case 'VIDEO':
                 if (!resource.video_url) return <p>URL do vídeo não encontrada.</p>;
                 
-                // Simple regex to get video ID from YouTube URL
                 const videoIdMatch = resource.video_url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
                 const videoId = videoIdMatch ? videoIdMatch[1] : null;
 

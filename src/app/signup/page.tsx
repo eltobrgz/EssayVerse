@@ -25,7 +25,7 @@ function SignupButton() {
 
     return (
         <Button type="submit" className="w-full" disabled={pending}>
-            {pending ? <Loader2 className="animate-spin" /> : 'Create an account'}
+            {pending ? <Loader2 className="animate-spin" /> : 'Criar uma conta'}
         </Button>
     );
 }
@@ -44,9 +44,9 @@ export default function SignupPage() {
         </div>
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-headline">Sign Up</CardTitle>
+            <CardTitle className="text-2xl font-headline">Cadastre-se</CardTitle>
             <CardDescription>
-              Enter your information to create an account
+              Insira suas informações para criar uma conta
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -59,8 +59,8 @@ export default function SignupPage() {
             ) : (
               <form action={signup} className="grid gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input id="fullName" name="fullName" placeholder="John Doe" required />
+                  <Label htmlFor="fullName">Nome Completo</Label>
+                  <Input id="fullName" name="fullName" placeholder="João da Silva" required />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="email">Email</Label>
@@ -68,24 +68,24 @@ export default function SignupPage() {
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="m@example.com"
+                    placeholder="m@exemplo.com"
                     required
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">Senha</Label>
                   <Input id="password" name="password" type="password" required />
                 </div>
                  <div className="grid gap-2">
-                    <Label>I am a</Label>
+                    <Label>Eu sou</Label>
                     <RadioGroup defaultValue="student" name="role" className="flex gap-4" required>
                         <div className="flex items-center space-x-2">
                             <RadioGroupItem value="student" id="role-student" />
-                            <Label htmlFor="role-student" className="font-normal">Student</Label>
+                            <Label htmlFor="role-student" className="font-normal">Aluno(a)</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                             <RadioGroupItem value="teacher" id="role-teacher" />
-                            <Label htmlFor="role-teacher" className="font-normal">Teacher</Label>
+                            <Label htmlFor="role-teacher" className="font-normal">Professor(a)</Label>
                         </div>
                     </RadioGroup>
                 </div>
@@ -93,7 +93,7 @@ export default function SignupPage() {
                 {message && !isSuccess && (
                   <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Signup Failed</AlertTitle>
+                    <AlertTitle>Falha no Cadastro</AlertTitle>
                     <AlertDescription>{message}</AlertDescription>
                   </Alert>
                 )}
@@ -102,9 +102,9 @@ export default function SignupPage() {
               </form>
             )}
             <div className="mt-4 text-center text-sm">
-              Already have an account?{' '}
+              Já tem uma conta?{' '}
               <Link href="/login" className="underline">
-                Login
+                Entrar
               </Link>
             </div>
           </CardContent>

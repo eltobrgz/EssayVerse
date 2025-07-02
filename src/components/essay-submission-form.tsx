@@ -17,7 +17,7 @@ function SubmitButton() {
   return (
     <Button type="submit" disabled={pending}>
       {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-      Submit for Scoring
+      Enviar para Correção
     </Button>
   );
 }
@@ -30,16 +30,16 @@ export function EssaySubmissionForm() {
     <form action={dispatch}>
       <Card>
         <CardHeader>
-          <CardTitle>Submit Your Essay</CardTitle>
-          <CardDescription>Get instant AI-powered feedback on your writing.</CardDescription>
+          <CardTitle>Envie Sua Redação</CardTitle>
+          <CardDescription>Receba feedback instantâneo com IA sobre sua escrita.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="title">Essay Title</Label>
+            <Label htmlFor="title">Título da Redação</Label>
             <Input 
               id="title"
               name="title"
-              placeholder="e.g., The Role of Technology in Education"
+              placeholder="Ex: O Papel da Tecnologia na Educação"
               required
             />
             {state.errors?.title &&
@@ -49,15 +49,15 @@ export function EssaySubmissionForm() {
             }
           </div>
           <div className="space-y-2">
-            <Label htmlFor="essayType">Essay Type</Label>
+            <Label htmlFor="essayType">Tipo de Redação</Label>
             <Select name="essayType" required>
               <SelectTrigger id="essayType">
-                <SelectValue placeholder="Select essay type..." />
+                <SelectValue placeholder="Selecione o tipo de redação..." />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ENEM">ENEM</SelectItem>
                 <SelectItem value="Fuvest">Fuvest</SelectItem>
-                <SelectItem value="Custom">Custom</SelectItem>
+                <SelectItem value="Custom">Personalizado</SelectItem>
               </SelectContent>
             </Select>
              {state.errors?.essayType &&
@@ -67,11 +67,11 @@ export function EssaySubmissionForm() {
             }
           </div>
           <div className="space-y-2">
-            <Label htmlFor="essayText">Essay Text</Label>
+            <Label htmlFor="essayText">Texto da Redação</Label>
             <Textarea
               id="essayText"
               name="essayText"
-              placeholder="Paste your essay here..."
+              placeholder="Cole sua redação aqui..."
               className="min-h-[300px]"
               required
             />
@@ -82,16 +82,16 @@ export function EssaySubmissionForm() {
             }
           </div>
           <div className="space-y-2">
-            <Label htmlFor="image">Upload Image (Optional)</Label>
+            <Label htmlFor="image">Enviar Imagem (Opcional)</Label>
             <Input id="image" name="image" type="file" />
             <p className="text-sm text-muted-foreground">
-              You can upload an image related to your essay, like a prompt or a chart.
+              Você pode enviar uma imagem relacionada à sua redação, como uma proposta ou um gráfico.
             </p>
           </div>
           {state.message && (
              <Alert variant="destructive">
                <AlertCircle className="h-4 w-4" />
-               <AlertTitle>Error</AlertTitle>
+               <AlertTitle>Erro</AlertTitle>
                <AlertDescription>{state.message}</AlertDescription>
              </Alert>
            )}

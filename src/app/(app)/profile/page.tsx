@@ -74,7 +74,7 @@ export default async function ProfilePage() {
               <div className="flex items-center gap-1 text-yellow-500">
                 <Flame className="h-5 w-5" />
                 <span className="font-bold">{profile.current_streak}</span>
-                <span className="text-sm text-muted-foreground">day streak</span>
+                <span className="text-sm text-muted-foreground">dias de sequência</span>
               </div>
             </div>
           </div>

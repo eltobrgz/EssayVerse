@@ -27,7 +27,7 @@ export function OverallProgressChart({ data }: { data: OverallProgressData[] }) 
   if (data.length === 0) {
     return (
       <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-        Submit more essays to see your progress over time.
+        Envie mais redações para ver seu progresso ao longo do tempo.
       </div>
     );
   }
@@ -54,7 +54,7 @@ export function ScoreByTypeChart({ data }: { data: ScoreByTypeData[] }) {
     if (data.length === 0) {
     return (
       <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-        No data available. Scores will appear here as you submit different types of essays.
+        Nenhum dado disponível. As notas aparecerão aqui conforme você envia diferentes tipos de redações.
       </div>
     );
   }

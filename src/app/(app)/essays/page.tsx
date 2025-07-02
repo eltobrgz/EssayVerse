@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/card';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
@@ -39,21 +40,20 @@ export default async function EssaysPage() {
 
   if (error) {
     console.error('Error fetching essays:', error);
-    // Optionally render an error state for the user
   }
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>My Essays</CardTitle>
+          <CardTitle>Minhas Redações</CardTitle>
           <CardDescription>
-            A record of all your submitted work.
+            Um registro de todos os seus trabalhos enviados.
           </CardDescription>
         </div>
         <Button asChild>
           <Link href="/submit-essay">
-            <PlusCircle className="mr-2 h-4 w-4" /> Submit New Essay
+            <PlusCircle className="mr-2 h-4 w-4" /> Enviar Nova Redação
           </Link>
         </Button>
       </CardHeader>
@@ -61,10 +61,10 @@ export default async function EssaysPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Submitted On</TableHead>
-              <TableHead className="text-right">Score</TableHead>
+              <TableHead>Título</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead>Enviado Em</TableHead>
+              <TableHead className="text-right">Nota</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -83,7 +83,7 @@ export default async function EssaysPage() {
                     <Badge variant="outline">{essay.type}</Badge>
                   </TableCell>
                   <TableCell>
-                    {format(new Date(essay.created_at), 'MMMM d, yyyy')}
+                    {format(new Date(essay.created_at), 'd \'de\' MMMM \'de\' yyyy', { locale: ptBR })}
                   </TableCell>
                   <TableCell className="text-right font-medium">
                     {essay.score}
@@ -93,7 +93,7 @@ export default async function EssaysPage() {
             ) : (
               <TableRow>
                 <TableCell colSpan={4} className="h-24 text-center">
-                  No essays submitted yet. Start by submitting one!
+                  Nenhuma redação enviada ainda. Comece enviando uma!
                 </TableCell>
               </TableRow>
             )}

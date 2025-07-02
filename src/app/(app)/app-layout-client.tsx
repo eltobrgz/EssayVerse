@@ -49,36 +49,36 @@ export function AppLayoutClient({
 
   if (profile.role === 'student') {
     navItems = [
-      { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-      { href: '/essays', icon: FileText, label: 'My Essays' },
-      { href: '/submit-essay', icon: PlusCircle, label: 'Submit Essay' },
-      { href: '/progress', icon: BarChart2, label: 'Progress' },
-      { href: '/my-teachers', icon: UserPlus, label: 'My Teachers' },
-      { href: '/resources', icon: Library, label: 'Resources' },
-      { href: '/community', icon: Users, label: 'Community' },
-      { href: '/profile', icon: UserIcon, label: 'My Profile' },
+      { href: '/dashboard', icon: LayoutDashboard, label: 'Painel' },
+      { href: '/essays', icon: FileText, label: 'Minhas Redações' },
+      { href: '/submit-essay', icon: PlusCircle, label: 'Enviar Redação' },
+      { href: '/progress', icon: BarChart2, label: 'Meu Progresso' },
+      { href: '/my-teachers', icon: UserPlus, label: 'Meus Professores' },
+      { href: '/resources', icon: Library, label: 'Recursos' },
+      { href: '/community', icon: Users, label: 'Comunidade' },
+      { href: '/profile', icon: UserIcon, label: 'Meu Perfil' },
     ];
     mobileNavItems = [
-      { href: '/dashboard', icon: Home, label: 'Home' },
-      { href: '/submit-essay', icon: PlusSquare, label: 'Submit' },
-      { href: '/progress', icon: BarChart3, label: 'Progress' },
-      { href: '/profile', icon: UserCircle, label: 'Profile' },
+      { href: '/dashboard', icon: Home, label: 'Início' },
+      { href: '/submit-essay', icon: PlusSquare, label: 'Enviar' },
+      { href: '/progress', icon: BarChart3, label: 'Progresso' },
+      { href: '/profile', icon: UserCircle, label: 'Perfil' },
     ];
   } else if (profile.role === 'teacher') {
     navItems = [
-      { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-      { href: '/teacher/my-students', icon: Users, label: 'My Students' },
-      { href: '/teacher/submissions', icon: ClipboardCheck, label: 'Submissions' },
-      { href: '/teacher/resources', icon: School, label: 'My Resources' },
-      { href: '/resources', icon: Library, label: 'Resources' },
-      { href: '/community', icon: Users, label: 'Community' },
-      { href: '/profile', icon: UserIcon, label: 'My Profile' },
+      { href: '/dashboard', icon: LayoutDashboard, label: 'Painel' },
+      { href: '/teacher/my-students', icon: Users, label: 'Meus Alunos' },
+      { href: '/teacher/submissions', icon: ClipboardCheck, label: 'Avaliações' },
+      { href: '/teacher/resources', icon: School, label: 'Meus Recursos' },
+      { href: '/resources', icon: Library, label: 'Recursos' },
+      { href: '/community', icon: Users, label: 'Comunidade' },
+      { href: '/profile', icon: UserIcon, label: 'Meu Perfil' },
     ];
     mobileNavItems = [
-      { href: '/dashboard', icon: Home, label: 'Home' },
-      { href: '/teacher/submissions', icon: ClipboardCheck, label: 'Submissions' },
-      { href: '/teacher/resources', icon: School, label: 'Resources' },
-      { href: '/profile', icon: UserCircle, label: 'Profile' },
+      { href: '/dashboard', icon: Home, label: 'Início' },
+      { href: '/teacher/submissions', icon: ClipboardCheck, label: 'Avaliações' },
+      { href: '/teacher/resources', icon: School, label: 'Recursos' },
+      { href: '/profile', icon: UserCircle, label: 'Perfil' },
     ];
   }
 
@@ -120,7 +120,7 @@ export function AppLayoutClient({
                   className="shrink-0 md:hidden"
                 >
                   <PanelLeft className="h-5 w-5" />
-                  <span className="sr-only">Toggle navigation menu</span>
+                  <span className="sr-only">Alternar menu de navegação</span>
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="flex flex-col">

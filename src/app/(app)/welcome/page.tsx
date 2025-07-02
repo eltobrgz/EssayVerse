@@ -18,21 +18,21 @@ export default async function WelcomePage() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-center text-2xl font-headline">
-            Login Successful!
+            Login Realizado com Sucesso!
           </CardTitle>
         </CardHeader>
         <CardContent className="text-center">
           <p className="text-lg">
-            Welcome back,
+            Bem-vindo(a) de volta,
           </p>
           <p className="font-bold text-primary break-all">
             {user.email}
           </p>
           <p className="mt-4 text-muted-foreground">
-            This proves your authentication is working correctly. The issue is likely with the data loading on the dashboard page, probably due to database policies (RLS).
+            Isso prova que sua autenticação está funcionando corretamente. O problema provavelmente está no carregamento de dados na página do painel, possivelmente devido às políticas do banco de dados (RLS).
           </p>
           <Button asChild className="mt-6">
-            <Link href="/dashboard">Proceed to Dashboard</Link>
+            <Link href="/dashboard">Ir para o Painel</Link>
           </Button>
         </CardContent>
       </Card>

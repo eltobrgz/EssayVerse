@@ -35,23 +35,23 @@ export default async function ProgressPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-3xl font-bold font-headline">Your Progress</h1>
+        <h1 className="text-3xl font-bold font-headline">Seu Progresso</h1>
         <p className="text-muted-foreground">
-          Track your improvement and identify areas for growth.
+          Acompanhe sua melhoria e identifique áreas para crescimento.
         </p>
       </div>
       <Tabs defaultValue="overview">
         <TabsList>
-          <TabsTrigger value="overview">Overall Progress</TabsTrigger>
-          <TabsTrigger value="by_type">Scores by Type</TabsTrigger>
+          <TabsTrigger value="overview">Progresso Geral</TabsTrigger>
+          <TabsTrigger value="by_type">Notas por Tipo</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Average Score Over Time</CardTitle>
+              <CardTitle>Nota Média ao Longo do Tempo</CardTitle>
               <CardDescription>
-                This chart shows the trend of your average scores on all essays
-                submitted.
+                Este gráfico mostra a tendência de suas notas médias em todas as redações
+                enviadas.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -62,9 +62,9 @@ export default async function ProgressPage() {
         <TabsContent value="by_type" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Average Score by Essay Type</CardTitle>
+              <CardTitle>Nota Média por Tipo de Redação</CardTitle>
               <CardDescription>
-                Compare your performance across different types of essays.
+                Compare seu desempenho em diferentes tipos de redações.
               </CardDescription>
             </CardHeader>
             <CardContent>

@@ -56,11 +56,11 @@ export default async function Dashboard() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-3xl font-bold font-headline">Welcome back, {userName}!</h1>
+      <h1 className="text-3xl font-bold font-headline">Bem-vindo(a) de volta, {userName}!</h1>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Essays</CardTitle>
+            <CardTitle className="text-sm font-medium">Total de Redações</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.total_essays || 0}</div>
@@ -68,7 +68,7 @@ export default async function Dashboard() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Average Score</CardTitle>
+            <CardTitle className="text-sm font-medium">Nota Média</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.average_score?.toFixed(1) || 'N/A'}</div>
@@ -76,34 +76,34 @@ export default async function Dashboard() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Current Level</CardTitle>
+            <CardTitle className="text-sm font-medium">Nível Atual</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">Level {profile?.level || 1}</div>
+            <div className="text-2xl font-bold">Nível {profile?.level || 1}</div>
             <Progress value={xpProgress} className="h-2 mt-2" />
             <p className="text-xs text-muted-foreground mt-1">{profile?.points % xpForNextLevel} / {xpForNextLevel} XP</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Login Streak</CardTitle>
+            <CardTitle className="text-sm font-medium">Sequência de Login</CardTitle>
             <Flame className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{profile?.current_streak || 0} days</div>
+            <div className="text-2xl font-bold">{profile?.current_streak || 0} dias</div>
           </CardContent>
         </Card>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-full lg:col-span-7">
           <CardHeader>
-            <CardTitle>Recent Essays</CardTitle>
+            <CardTitle>Redações Recentes</CardTitle>
             <div className="flex items-center justify-between">
               <CardDescription>
-                Check out your latest scored essays.
+                Confira suas últimas redações corrigidas.
               </CardDescription>
               <Button size="sm" asChild>
-                <Link href="/submit-essay"><PlusCircle className="mr-2 h-4 w-4" />Submit New Essay</Link>
+                <Link href="/submit-essay"><PlusCircle className="mr-2 h-4 w-4" />Enviar Nova Redação</Link>
               </Button>
             </div>
           </CardHeader>
@@ -111,9 +111,9 @@ export default async function Dashboard() {
              <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead className="text-right">Score</TableHead>
+                  <TableHead>Título</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead className="text-right">Nota</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -133,7 +133,7 @@ export default async function Dashboard() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={3} className="h-24 text-center">No essays submitted yet.</TableCell>
+                    <TableCell colSpan={3} className="h-24 text-center">Nenhuma redação enviada ainda.</TableCell>
                   </TableRow>
                 )}
               </TableBody>
@@ -141,7 +141,7 @@ export default async function Dashboard() {
           </CardContent>
           <CardFooter>
              <Button asChild size="sm" variant="outline" className="ml-auto gap-1">
-                <Link href="/essays">View All <ArrowUpRight className="h-4 w-4" /></Link>
+                <Link href="/essays">Ver Todas <ArrowUpRight className="h-4 w-4" /></Link>
             </Button>
           </CardFooter>
         </Card>

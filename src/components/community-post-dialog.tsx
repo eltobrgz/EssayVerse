@@ -26,7 +26,7 @@ function SubmitButton() {
   return (
     <Button type="submit" disabled={pending}>
       {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-      Create Post
+      Criar Post
     </Button>
   );
 }
@@ -39,12 +39,12 @@ export function CommunityPostDialog() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (state.message === 'Post created successfully.') {
+    if (state.message === 'Post criado com sucesso.') {
       setOpen(false);
       formRef.current?.reset();
       toast({
-        title: 'Post Created!',
-        description: 'Your post is now live in the community forum.',
+        title: 'Post Criado!',
+        description: 'Seu post já está disponível no fórum da comunidade.',
       });
     }
   }, [state, toast]);
@@ -54,23 +54,23 @@ export function CommunityPostDialog() {
       <DialogTrigger asChild>
         <Button>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Create Post
+          Criar Post
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
-          <DialogTitle>Create a new post</DialogTitle>
+          <DialogTitle>Criar um novo post</DialogTitle>
           <DialogDescription>
-            Share your thoughts, ask a question, or post a model essay.
+            Compartilhe suas ideias, faça uma pergunta ou publique uma redação modelo.
           </DialogDescription>
         </DialogHeader>
         <form ref={formRef} action={dispatch} className="grid gap-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">Título</Label>
             <Input
               id="title"
               name="title"
-              placeholder="e.g., How to write a great conclusion?"
+              placeholder="Ex: Como escrever uma ótima conclusão?"
               required
             />
             {state.errors?.title &&
@@ -81,11 +81,11 @@ export function CommunityPostDialog() {
               ))}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="content">Content (Optional)</Label>
+            <Label htmlFor="content">Conteúdo (Opcional)</Label>
             <Textarea
               id="content"
               name="content"
-              placeholder="Share more details here..."
+              placeholder="Compartilhe mais detalhes aqui..."
               className="min-h-[150px]"
             />
              {state.errors?.content &&
@@ -96,7 +96,7 @@ export function CommunityPostDialog() {
               ))}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="image">Upload Image (Optional)</Label>
+            <Label htmlFor="image">Enviar Imagem (Opcional)</Label>
             <Input id="image" name="image" type="file" accept="image/*" />
             {state.errors?.image &&
               state.errors.image.map((error: string) => (
@@ -106,7 +106,7 @@ export function CommunityPostDialog() {
               ))}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="video">Upload Video (Optional)</Label>
+            <Label htmlFor="video">Enviar Vídeo (Opcional)</Label>
             <Input id="video" name="video" type="file" accept="video/*" />
              {state.errors?.video &&
               state.errors.video.map((error: string) => (
@@ -115,15 +115,15 @@ export function CommunityPostDialog() {
                 </p>
               ))}
           </div>
-          {state.message && state.message !== 'Post created successfully.' && (
+          {state.message && state.message !== 'Post criado com sucesso.' && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
+              <AlertTitle>Erro</AlertTitle>
               <AlertDescription>{state.message}</AlertDescription>
             </Alert>
           )}
           <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
             <SubmitButton />
           </DialogFooter>
         </form>

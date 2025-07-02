@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -43,17 +44,16 @@ export default function LoginPage() {
       password,
     });
     
-    // Stop loading indicator as soon as the async operation is done.
-    setIsLoading(false);
-
     if (signInError) {
       setError(signInError.message);
+      setIsLoading(false);
       return;
     }
 
-    // On success, the session is set in the cookie.
-    // The middleware will handle route protection.
-    router.push(next);
+    // On success, the session cookie is set.
+    // We refresh the page. The middleware will then see the authenticated 
+    // user is on an auth route and will handle the redirect to the dashboard.
+    router.refresh();
   };
 
   return (

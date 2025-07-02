@@ -14,6 +14,7 @@ import { createClient } from '@/lib/supabase/server';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { AudioPlayer } from '@/components/audio-player';
 
 export default async function EssayPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -125,9 +126,12 @@ export default async function EssayPage({ params }: { params: { id: string } }) 
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquareQuote className="h-5 w-5 text-primary" />
-              Feedback (IA)
+            <CardTitle className="flex items-center justify-between gap-2">
+              <div className='flex items-center gap-2'>
+                <MessageSquareQuote className="h-5 w-5 text-primary" />
+                Feedback (IA)
+              </div>
+              <AudioPlayer textToSpeak={essay.feedback} />
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
@@ -136,9 +140,12 @@ export default async function EssayPage({ params }: { params: { id: string } }) 
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Lightbulb className="h-5 w-5 text-primary" />
-              Sugestões (IA)
+            <CardTitle className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Lightbulb className="h-5 w-5 text-primary" />
+                Sugestões (IA)
+              </div>
+              <AudioPlayer textToSpeak={essay.suggestions} />
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">

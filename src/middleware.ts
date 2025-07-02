@@ -3,6 +3,8 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  // Esta variável `response` é a chave. Ela será passada para o manipulador de cookies do Supabase
+  // e potencialmente atualizada com um novo cookie de sessão.
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -18,16 +20,21 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
+          // O método `set` é chamado sempre que o cliente Supabase precisa
+          // atualizar o cookie da sessão.
+          // Atualizamos o cookie na requisição para que os Server Components possam vê-lo.
           request.cookies.set({
             name,
             value,
             ...options,
           })
+          // Recriamos o objeto de resposta para garantir que ele tenha os cabeçalhos de requisição atualizados.
           response = NextResponse.next({
             request: {
               headers: request.headers,
             },
           })
+          // Definimos o cookie na resposta para que ele seja enviado ao navegador.
           response.cookies.set({
             name,
             value,
@@ -35,6 +42,8 @@ export async function middleware(request: NextRequest) {
           })
         },
         remove(name: string, options: CookieOptions) {
+          // O método `remove` é chamado sempre que o cliente Supabase precisa
+          // deslogar o usuário.
           request.cookies.set({
             name,
             value: '',
@@ -51,6 +60,7 @@ export async function middleware(request: NextRequest) {
     }
   )
 
+  // Esta chamada é o que atualiza a sessão do usuário.
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -80,20 +90,20 @@ export async function middleware(request: NextRequest) {
   ]
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route))
 
-  // Se o usuário não está autenticado e a rota não é pública, redireciona para o login
+  // Se o usuário não está logado e a rota não é pública, redireciona para o login
   if (!user && !isPublicRoute) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('next', pathname)
     return NextResponse.redirect(loginUrl)
   }
 
-  // Se o usuário está autenticado e tenta acessar uma rota de autenticação, redireciona para o dashboard
+  // Se o usuário está logado e tenta acessar uma rota de autenticação, redireciona para o dashboard
   if (user && isAuthRoute) {
-    // Preserva os cabeçalhos (incluindo Set-Cookie) ao redirecionar
+    // ESTA É A CORREÇÃO CRUCIAL. Criamos uma resposta de redirecionamento,
+    // mas antes de retorná-la, copiamos todos os cabeçalhos `Set-Cookie`
+    // que o cliente Supabase possa ter definido no objeto `response` original.
     const redirectResponse = NextResponse.redirect(new URL('/dashboard', request.url));
     
-    // Copia todos os cookies da resposta original (que pode conter a sessão atualizada)
-    // para a nova resposta de redirecionamento.
     response.cookies.getAll().forEach(cookie => {
       redirectResponse.cookies.set(cookie);
     });
@@ -101,7 +111,8 @@ export async function middleware(request: NextRequest) {
     return redirectResponse;
   }
   
-  // Retorna a resposta, que pode ter sido modificada pelos manipuladores de cookie.
+  // Se nenhum redirecionamento for necessário, retorna a resposta original, que pode ter sido
+  // atualizada pelo cliente Supabase para renovar a sessão.
   return response
 }
 

@@ -1,4 +1,5 @@
-import { CreateResourceForm } from "@/components/create-resource-form";
+
+import { ResourceForm } from "@/components/resource-form";
 
 export default function CreateResourcePage() {
     return (
@@ -9,7 +10,7 @@ export default function CreateResourcePage() {
                     Escolha o tipo de material que deseja criar e preencha as informações.
                 </p>
             </div>
-            <CreateResourceForm />
+            <ResourceForm />
         </div>
     )
 }

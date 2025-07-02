@@ -1,13 +1,21 @@
+
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { createClient } from '@/lib/supabase/server';
-import { PlusCircle, Video, BrainCircuit, ListChecks } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Video, BrainCircuit, ListChecks, Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { format } from 'date-fns';
@@ -54,10 +62,34 @@ export default async function TeacherResourcesPage() {
         {resources?.map(resource => (
           <Card key={resource.id}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {ICONS[resource.resource_type]}
-                {resource.title}
-              </CardTitle>
+                <div className="flex justify-between items-start">
+                    <CardTitle className="flex items-center gap-2">
+                        {ICONS[resource.resource_type]}
+                        {resource.title}
+                    </CardTitle>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Abrir menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                               <Link href={`/teacher/resources/${resource.id}/edit`}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    <span>Editar</span>
+                                </Link>
+                            </DropdownMenuItem>
+                             <DropdownMenuItem className="text-destructive" asChild>
+                                <Link href={`/teacher/resources/${resource.id}/edit?action=delete`}>
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    <span>Excluir</span>
+                                </Link>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
               <CardDescription>
                 Criado em {format(new Date(resource.created_at), 'dd/MM/yyyy', { locale: ptBR })}
               </CardDescription>

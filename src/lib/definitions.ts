@@ -11,6 +11,7 @@ export type Profile = {
   current_streak: number;
   last_login_date: string;
   email?: string;
+  bio?: string | null;
 };
 
 export type Essay = {
@@ -102,6 +103,7 @@ export type StudentQuizAttempt = {
   score: number;
   total_questions: number;
   completed_at: string;
+  resources: { title: string } | null;
 };
 
 export type TeacherStudentConnection = {
@@ -128,6 +130,11 @@ export type State = {
     videoUrl?: string[];
     feedbackText?: string[];
     correctedImage?: string[];
+    fullName?: string[];
+    bio?: string[];
+    avatar?: string[];
+    password?: string[];
+    email?: string[];
   };
   message?: string | null;
 };

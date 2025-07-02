@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Search, UserPlus } from 'lucide-react';
 import type { Profile } from '@/lib/definitions';
+import Link from 'next/link';
 
 function TeacherCard({ teacher, status }: { teacher: Profile, status: 'accepted' | 'pending' | 'search_result' }) {
     return (
@@ -19,7 +20,9 @@ function TeacherCard({ teacher, status }: { teacher: Profile, status: 'accepted'
                     <AvatarFallback>{teacher.full_name?.charAt(0) || 'T'}</AvatarFallback>
                 </Avatar>
                 <div>
-                    <p className="font-semibold">{teacher.full_name}</p>
+                   <Link href={`/teacher-profile/${teacher.id}`} className="font-semibold hover:underline">
+                        {teacher.full_name}
+                    </Link>
                     <p className="text-sm text-muted-foreground">{teacher.email}</p>
                 </div>
             </div>

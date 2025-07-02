@@ -7,7 +7,7 @@ import type { ElementType } from 'react';
 import {
   BarChart2,
   BarChart3,
-  Bell,
+  BookUser,
   FileText,
   Home,
   LayoutDashboard,
@@ -16,11 +16,9 @@ import {
   PlusCircle,
   PlusSquare,
   School,
-  Search,
+  Settings,
   Users,
-  User as UserIcon,
   ClipboardCheck,
-  UserPlus,
   UserCircle,
 } from 'lucide-react';
 
@@ -48,7 +46,10 @@ export function AppLayoutClient({
   let mobileNavItems: { href: string; icon: ElementType; label: string }[] = [];
 
   const isActive = (href: string) => {
-    return pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
+    // Exact match for dashboard
+    if (href === '/dashboard') return pathname === href;
+    // For other routes, check if the pathname starts with the href
+    return pathname.startsWith(href);
   }
 
   if (profile.role === 'student') {
@@ -57,10 +58,10 @@ export function AppLayoutClient({
       { href: '/essays', icon: FileText, label: 'Minhas Redações' },
       { href: '/submit-essay', icon: PlusCircle, label: 'Enviar Redação' },
       { href: '/progress', icon: BarChart2, label: 'Meu Progresso' },
-      { href: '/my-teachers', icon: UserPlus, label: 'Meus Professores' },
+      { href: '/my-teachers', icon: BookUser, label: 'Meus Professores' },
       { href: '/resources', icon: Library, label: 'Recursos' },
       { href: '/community', icon: Users, label: 'Comunidade' },
-      { href: '/profile', icon: UserIcon, label: 'Meu Perfil' },
+      { href: '/profile', icon: Settings, label: 'Meu Perfil e Config.' },
     ];
     mobileNavItems = [
       { href: '/dashboard', icon: Home, label: 'Início' },
@@ -76,7 +77,7 @@ export function AppLayoutClient({
       { href: '/teacher/resources', icon: School, label: 'Meus Recursos' },
       { href: '/resources', icon: Library, label: 'Recursos' },
       { href: '/community', icon: Users, label: 'Comunidade' },
-      { href: '/profile', icon: UserIcon, label: 'Meu Perfil' },
+      { href: '/profile', icon: Settings, label: 'Meu Perfil e Config.' },
     ];
     mobileNavItems = [
       { href: '/dashboard', icon: Home, label: 'Início' },

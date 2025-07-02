@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useActionState, useState } from 'react';
@@ -165,7 +166,7 @@ export function CreateResourceForm() {
 
           {resourceType === 'VIDEO' && (
             <div className="space-y-2">
-              <Label htmlFor="videoUrl">URL do Vídeo (YouTube, Vimeo)</Label>
+              <Label htmlFor="videoUrl">URL do Vídeo (YouTube)</Label>
               <Input name="videoUrl" placeholder="https://www.youtube.com/watch?v=..." />
             </div>
           )}

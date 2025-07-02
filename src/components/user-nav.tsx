@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -16,7 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { CreditCard, LogOut, Settings, User as UserIcon } from 'lucide-react';
+import { LogOut, Settings } from 'lucide-react';
 import { logout } from '@/app/auth/actions';
 import type { User } from '@supabase/supabase-js';
 import type { Profile } from '@/lib/definitions';
@@ -53,17 +54,9 @@ export function UserNav({ user, profile }: { user: User | null, profile: Profile
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
             <Link href="/profile">
-              <UserIcon className="mr-2 h-4 w-4" />
-              <span>Perfil</span>
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Perfil e Configurações</span>
             </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <CreditCard className="mr-2 h-4 w-4" />
-            <span>Faturamento</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Configurações</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

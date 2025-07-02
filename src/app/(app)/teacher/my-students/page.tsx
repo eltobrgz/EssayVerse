@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Check, X } from 'lucide-react';
 import type { Profile } from '@/lib/definitions';
+import Link from 'next/link';
 
 function StudentCard({ student, isPending }: { student: Profile, isPending: boolean }) {
     return (
@@ -17,7 +18,9 @@ function StudentCard({ student, isPending }: { student: Profile, isPending: bool
                     <AvatarFallback>{student.full_name?.charAt(0) || 'S'}</AvatarFallback>
                 </Avatar>
                 <div>
-                    <p className="font-semibold">{student.full_name}</p>
+                   <Link href={`/teacher/student/${student.id}`} className="font-semibold hover:underline">
+                        {student.full_name}
+                    </Link>
                     <p className="text-sm text-muted-foreground">{student.email}</p>
                 </div>
             </div>

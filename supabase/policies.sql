@@ -1,77 +1,103 @@
--- Enable RLS
-alter table "public"."profiles" enable row level security;
-alter table "public"."essays" enable row level security;
-alter table "public"."community_posts" enable row level security;
-alter table "public"."badges" enable row level security;
-alter table "public"."user_badges" enable row level security;
-alter table "public"."resources" enable row level security;
-alter table "public"."quiz_questions" enable row level security;
-alter table "public"."quiz_options" enable row level security;
-alter table "public"."teacher_student_connections" enable row level security;
-alter table "public"."student_quiz_attempts" enable row level security;
+-- Profiles
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view all profiles." ON profiles FOR SELECT USING (true);
+CREATE POLICY "Users can only update their own profile." ON profiles FOR UPDATE USING (auth.uid() = id);
 
--- Policies for profiles
-create policy "Public profiles are viewable by everyone." on public.profiles for select using (true);
-create policy "Users can insert their own profile." on public.profiles for insert with check (auth.uid() = id);
-create policy "Users can update their own profile." on public.profiles for update using (auth.uid() = id);
-
--- Policies for essays
-create policy "Users can view their own essays." on public.essays for select using (auth.uid() = user_id);
-create policy "Users can create their own essays." on public.essays for insert with check (auth.uid() = user_id);
-create policy "Teachers can view their students' essays." on public.essays for select using ((select role from public.profiles where id = auth.uid()) = 'teacher' AND user_id IN (SELECT student_id from public.teacher_student_connections where teacher_id = auth.uid()));
-create policy "Teachers can update their students' essays with feedback." on public.essays for update using ((select role from public.profiles where id = auth.uid()) = 'teacher' AND user_id IN (SELECT student_id from public.teacher_student_connections where teacher_id = auth.uid()));
-
-
--- Policies for community_posts
-create policy "Community posts are viewable by authenticated users." on public.community_posts for select to authenticated using (true);
-create policy "Users can create their own posts." on public.community_posts for insert to authenticated with check (auth.uid() = user_id);
-
--- Policies for badges
-create policy "Badges are viewable by everyone." on public.badges for select using (true);
-create policy "User badges are viewable by everyone." on public.user_badges for select using (true);
-
--- Policies for resources
-create policy "Resources are viewable by authenticated users." on public.resources for select to authenticated using (true);
-create policy "Teachers can create resources." on public.resources for insert with check ((select role from public.profiles where id = auth.uid()) = 'teacher' AND creator_id = auth.uid());
-create policy "Teachers can manage their own resources." on public.resources for update using ((select role from public.profiles where id = auth.uid()) = 'teacher' AND creator_id = auth.uid());
-create policy "Teachers can delete their own resources." on public.resources for delete using ((select role from public.profiles where id = auth.uid()) = 'teacher' AND creator_id = auth.uid());
-
--- Policies for quiz questions and options
-create policy "Quiz data is viewable by authenticated users." on public.quiz_questions for select to authenticated using (true);
-create policy "Quiz data is viewable by authenticated users." on public.quiz_options for select to authenticated using (true);
-
--- Policies for quiz attempts
-create policy "Users can view their own attempts." on public.student_quiz_attempts for select using (auth.uid() = student_id);
-create policy "Users can create their own attempts." on public.student_quiz_attempts for insert with check (auth.uid() = student_id);
-
--- Policies for teacher_student_connections
-create policy "Connections are viewable by authenticated users." on public.teacher_student_connections for select to authenticated using (true);
-
-
--- Storage Policies
-
--- Policies for essay_images bucket
-CREATE POLICY "Allow authenticated users to upload to essay_images" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'essay_images' AND auth.uid() = owner_id);
-CREATE POLICY "Allow users to see their own essay images" ON storage.objects FOR SELECT USING (bucket_id = 'essay_images' AND auth.uid() = owner_id);
-CREATE POLICY "Allow teachers to view student essay images" ON storage.objects FOR SELECT USING (
-    bucket_id = 'essay_images' AND
-    (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'teacher' AND
-    owner_id IN (SELECT student_id FROM public.teacher_student_connections WHERE teacher_id = auth.uid())
+-- Essays
+ALTER TABLE essays ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view their own essays." ON essays FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own essays." ON essays FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own essays." ON essays FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Teachers can view essays of their students." ON essays FOR SELECT USING (
+  (SELECT role FROM profiles WHERE id = auth.uid()) = 'teacher' AND
+  user_id IN (SELECT student_id FROM teacher_student_connections WHERE teacher_id = auth.uid())
+);
+CREATE POLICY "Teachers can update essays of their students (for feedback)." ON essays FOR UPDATE USING (
+  (SELECT role FROM profiles WHERE id = auth.uid()) = 'teacher' AND
+  user_id IN (SELECT student_id FROM teacher_student_connections WHERE teacher_id = auth.uid())
 );
 
--- Policies for corrected_essay_images bucket
-CREATE POLICY "Allow teachers to upload corrected images" ON storage.objects FOR INSERT WITH CHECK (
+
+-- Community Posts
+ALTER TABLE community_posts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view all community posts." ON community_posts FOR SELECT USING (true);
+CREATE POLICY "Users can insert their own posts." ON community_posts FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own posts." ON community_posts FOR UPDATE USING (auth.uid() = user_id);
+
+-- Badges
+ALTER TABLE badges ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view all badges" ON badges FOR SELECT USING (true);
+ALTER TABLE user_badges ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view all user badges" ON user_badges FOR SELECT USING (true);
+
+-- Storage (essay_images)
+CREATE POLICY "Users can upload essay images" FOR INSERT ON storage.objects WITH CHECK (
+  bucket_id = 'essay_images' AND auth.uid()::text = (storage.foldername(name))[1]
+);
+CREATE POLICY "Users can view their own essay images" FOR SELECT ON storage.objects USING (
+  bucket_id = 'essay_images' AND auth.uid()::text = (storage.foldername(name))[1]
+);
+
+-- Storage (community_media)
+CREATE POLICY "Users can upload community media" FOR INSERT ON storage.objects WITH CHECK (
+  bucket_id = 'community_media' AND auth.uid()::text = (storage.foldername(name))[1]
+);
+CREATE POLICY "Users can view all community media" FOR SELECT ON storage.objects USING ( bucket_id = 'community_media' );
+
+-- Learning Resources
+ALTER TABLE resources ENABLE ROW LEVEL SECURITY;
+ALTER TABLE quiz_questions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE quiz_options ENABLE ROW LEVEL SECURITY;
+ALTER TABLE student_quiz_attempts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE teacher_student_connections ENABLE ROW LEVEL SECURITY;
+
+-- Resources Policies
+CREATE POLICY "Public and restricted resources are viewable by appropriate users." ON resources FOR SELECT USING (
+  visibility = 'PUBLIC' OR
+  creator_id = auth.uid() OR
+  (
+    visibility = 'RESTRICTED' AND
+    (SELECT role FROM profiles WHERE id = auth.uid()) = 'student' AND
+    creator_id IN (SELECT teacher_id FROM teacher_student_connections WHERE student_id = auth.uid())
+  )
+);
+CREATE POLICY "Teachers can create resources." ON resources FOR INSERT WITH CHECK (
+  auth.uid() = creator_id AND (SELECT role FROM profiles WHERE id = auth.uid()) = 'teacher'
+);
+CREATE POLICY "Teachers can update their own resources." ON resources FOR UPDATE USING ( auth.uid() = creator_id );
+
+-- Quiz Policies
+CREATE POLICY "Users can view questions of accessible quizzes." ON quiz_questions FOR SELECT USING (
+  (SELECT true FROM resources WHERE id = resource_id)
+);
+CREATE POLICY "Users can view options of accessible questions." ON quiz_options FOR SELECT USING (
+  (SELECT true FROM quiz_questions WHERE id = question_id)
+);
+CREATE POLICY "Students can create/view their own quiz attempts." ON student_quiz_attempts FOR ALL USING ( auth.uid() = student_id );
+
+-- Teacher Student Connections Policies
+CREATE POLICY "All users can view connections." ON teacher_student_connections FOR SELECT USING (true);
+
+-- Storage (learning_resources)
+CREATE POLICY "Teachers can upload learning resources" FOR INSERT ON storage.objects WITH CHECK (
+  bucket_id = 'learning_resources' AND (SELECT role FROM profiles WHERE id = auth.uid()) = 'teacher'
+);
+CREATE POLICY "Anyone can view learning resources" FOR SELECT ON storage.objects USING ( bucket_id = 'learning_resources' );
+
+-- Storage (corrected_essay_images)
+CREATE POLICY "Teachers can upload corrected images." FOR INSERT ON storage.objects WITH CHECK (
+  bucket_id = 'corrected_essay_images' AND (SELECT role FROM profiles WHERE id = auth.uid()) = 'teacher'
+);
+
+CREATE POLICY "Users can view corrected images for their own essays." FOR SELECT ON storage.objects USING (
     bucket_id = 'corrected_essay_images' AND
-    (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'teacher'
+    auth.uid() = (
+        SELECT user_id FROM essays WHERE essays.id = (substring(storage.filename(name) from 'corrected-([0-9a-f-]{36})'))::uuid
+    )
 );
--- NOTE: The bucket is public, so read access is granted to anyone with the link.
--- Row Level Security on the `essays` table protects the URL itself.
-CREATE POLICY "Allow users to view corrected images" ON storage.objects FOR SELECT USING (bucket_id = 'corrected_essay_images');
 
--- Policies for community_media
-CREATE POLICY "Allow authenticated users to upload to community_media" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'community_media' AND auth.uid() = owner_id);
-CREATE POLICY "Allow authenticated users to view community_media" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'community_media');
-
--- Policies for learning_resources
-CREATE POLICY "Allow teachers to upload to learning_resources" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'learning_resources' AND (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'teacher');
-CREATE POLICY "Allow authenticated users to view learning_resources" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'learning_resources');
+CREATE POLICY "Teachers can view corrected images they uploaded." FOR SELECT ON storage.objects USING (
+    bucket_id = 'corrected_essay_images' AND
+    (SELECT role FROM profiles WHERE id = auth.uid()) = 'teacher' AND
+    auth.uid()::text = (storage.foldername(name))[1]
+);

@@ -2,7 +2,8 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
+  // Create a response object that we can modify and return
+  const response = NextResponse.next({
     request: {
       headers: request.headers,
     },
@@ -17,35 +18,36 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value;
         },
         set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({ name, value, ...options });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
+          // The `set` method is called by Supabase when a session is updated.
+          // We forward this to the response so the browser can update its cookies.
+          response.cookies.set({
+            name,
+            value,
+            ...options,
           });
-          response.cookies.set({ name, value, ...options });
         },
         remove(name: string, options: CookieOptions) {
-          request.cookies.set({ name, value: '', ...options });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
+          // The `remove` method is called by Supabase when a session is deleted.
+          // We forward this to the response so the browser can delete its cookies.
+          response.cookies.set({
+            name,
+            value: '',
+            ...options,
           });
-          response.cookies.set({ name, value: '', ...options });
         },
       },
     }
   );
 
   // Refresh session if expired - required for Server Components
+  // This will also update the session cookie if it has expired.
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
   
-  const protectedRoutes = ['/dashboard', '/essays', '/submit-essay', '/community', '/progress', '/profile', '/resources', '/teacher'];
+  const protectedRoutes = ['/dashboard', '/essays', '/submit-essay', '/community', '/progress', '/profile', '/resources', '/teacher', '/welcome'];
   const authRoutes = ['/login', '/signup'];
 
   // Redirect logged-in users from auth routes to the dashboard
@@ -62,6 +64,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // Return the response object, which may have new cookies set.
   return response;
 }
 

@@ -15,12 +15,17 @@ export type Essay = {
   title: string;
   type: 'ENEM' | 'Fuvest' | 'Custom';
   content: string;
-  image_url?: string;
+  image_url?: string | null;
   created_at: string;
   score: number;
   feedback: string;
   suggestions: string;
   estimated_grade: string;
+  corrected_image_url?: string | null;
+  teacher_feedback_text?: string | null;
+  reviewed_by_teacher_at?: string | null;
+  // This is a joined property from `profiles`
+  profiles?: { full_name: string; } | null;
 };
 
 export type CommunityPost = {
@@ -76,7 +81,7 @@ export type QuizQuestion = {
 };
 
 export type QuizOption = {
-  id: string;
+  id:string;
   question_id: string;
   option_text: string;
   is_correct: boolean;

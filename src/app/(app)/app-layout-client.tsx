@@ -14,6 +14,7 @@ import {
   Search,
   Users,
   User as UserIcon,
+  ClipboardCheck,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -44,6 +45,7 @@ export function AppLayoutClient({
 
   const teacherNavItems = [
     { href: '/teacher/resources', icon: School, label: 'Teacher Area' },
+    { href: '/teacher/submissions', icon: ClipboardCheck, label: 'Avaliações' },
   ];
 
   const allNavItems = profile.role === 'teacher' ? [...navItems, ...teacherNavItems] : navItems;

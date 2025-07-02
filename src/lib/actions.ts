@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { createClient } from './supabase/server';
 import { isToday, isYesterday } from 'date-fns';
-import type { Quiz, QuizOption, QuizQuestion, Resource } from './definitions';
+import type { Essay, Quiz, QuizOption, QuizQuestion, Resource } from './definitions';
 
 const EssayFormSchema = z.object({
   title: z.string().min(3, { message: 'Title must be at least 3 characters long.'}),
@@ -31,6 +31,12 @@ const ResourceFormSchema = z.object({
     image: z.instanceof(File).optional(),
 });
 
+const TeacherFeedbackSchema = z.object({
+  essayId: z.string(),
+  feedbackText: z.string().min(10, { message: 'Feedback must be at least 10 characters long.'}),
+  correctedImage: z.instanceof(File).optional(),
+});
+
 
 export type State = {
   errors?: {
@@ -43,6 +49,8 @@ export type State = {
     resourceType?: string[];
     visibility?: string[];
     videoUrl?: string[];
+    feedbackText?: string[];
+    correctedImage?: string[];
   };
   message?: string | null;
 };
@@ -173,6 +181,7 @@ export async function submitAndScoreEssay(prevState: State, formData: FormData) 
     revalidatePath('/essays');
     revalidatePath('/dashboard');
     revalidatePath('/profile');
+    revalidatePath('/teacher/submissions');
     redirect(`/essay/${newEssay.id}`);
 
   } catch (error) {
@@ -477,4 +486,109 @@ export async function submitQuizAttempt(quizId: string, answers: Record<string, 
 
     revalidatePath(`/resources/${quizId}`);
     return { score, total };
+}
+
+// --- Teacher Feedback Actions ---
+export async function getSubmissionsForTeacher(teacherId: string) {
+  const supabase = createClient();
+  const { data: connections } = await supabase
+    .from('teacher_student_connections')
+    .select('student_id')
+    .eq('teacher_id', teacherId);
+
+  if (!connections || connections.length === 0) return [];
+  
+  const studentIds = connections.map(c => c.student_id);
+
+  const { data: essays, error } = await supabase
+    .from('essays')
+    .select('id, title, created_at, image_url, reviewed_by_teacher_at, profiles!user_id(full_name)')
+    .in('user_id', studentIds)
+    .not('image_url', 'is', null) // Only fetch essays with images
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching submissions for teacher:', error);
+    return [];
+  }
+  return essays;
+}
+
+export async function getEssayForTeacher(essayId: string, teacherId: string): Promise<Essay | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('essays')
+    .select('*, profiles:user_id(full_name)')
+    .eq('id', essayId)
+    .single();
+
+  if (error || !data) {
+    console.error('Error fetching essay for teacher:', error);
+    return null;
+  }
+  
+  // Security check: ensure the essay belongs to a student of this teacher
+  const { data: connection } = await supabase
+    .from('teacher_student_connections')
+    .select('*')
+    .eq('teacher_id', teacherId)
+    .eq('student_id', data.user_id)
+    .maybeSingle();
+
+  if (!connection) {
+    return null; // Teacher is not connected to the student who wrote this essay
+  }
+  
+  return data as Essay;
+}
+
+export async function submitTeacherFeedback(prevState: State, formData: FormData) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user || (await supabase.from('profiles').select('role').eq('id', user.id).single()).data?.role !== 'teacher') {
+    return { message: 'Only teachers can submit feedback.' };
+  }
+
+  const validatedFields = TeacherFeedbackSchema.safeParse({
+    essayId: formData.get('essayId'),
+    feedbackText: formData.get('feedbackText'),
+    correctedImage: formData.get('correctedImage'),
+  });
+
+  if (!validatedFields.success) {
+    return { errors: validatedFields.error.flatten().fieldErrors, message: 'Invalid fields.' };
+  }
+
+  const { essayId, feedbackText, correctedImage } = validatedFields.data;
+  let correctedImageUrl: string | undefined = undefined;
+
+  if (correctedImage && correctedImage.size > 0) {
+    const filePath = `${user.id}/corrected-${essayId}-${correctedImage.name}`;
+    const { error: uploadError } = await supabase.storage.from('corrected_essay_images').upload(filePath, correctedImage);
+    if (uploadError) {
+      console.error('Error uploading corrected image:', uploadError);
+      return { message: 'Failed to upload corrected image.' };
+    }
+    correctedImageUrl = supabase.storage.from('corrected_essay_images').getPublicUrl(filePath).data.publicUrl;
+  }
+  
+  const { error: updateError } = await supabase
+    .from('essays')
+    .update({
+      teacher_feedback_text: feedbackText,
+      corrected_image_url: correctedImageUrl,
+      reviewed_by_teacher_at: new Date().toISOString(),
+    })
+    .eq('id', essayId);
+  
+  if (updateError) {
+    console.error('Error updating essay with feedback:', updateError);
+    return { message: 'Failed to save feedback.' };
+  }
+
+  revalidatePath('/teacher/submissions');
+  revalidatePath(`/teacher/submissions/${essayId}`);
+  revalidatePath(`/essay/${essayId}`);
+  redirect(`/teacher/submissions/${essayId}`);
 }

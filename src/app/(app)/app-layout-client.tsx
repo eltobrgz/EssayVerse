@@ -3,20 +3,25 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import type { ElementType } from 'react';
 import {
   BarChart2,
+  BarChart3,
   Bell,
   FileText,
+  Home,
   LayoutDashboard,
   Library,
   PanelLeft,
   PlusCircle,
+  PlusSquare,
   School,
   Search,
   Users,
   User as UserIcon,
   ClipboardCheck,
   UserPlus,
+  UserCircle,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -26,6 +31,7 @@ import { UserNav } from '@/components/user-nav';
 import type { Profile } from '@/lib/definitions';
 import { ChatTutor } from '@/components/chat-tutor';
 import type { User } from '@supabase/supabase-js';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export function AppLayoutClient({
   children,
@@ -38,30 +44,43 @@ export function AppLayoutClient({
 }) {
   const pathname = usePathname();
 
-  const navItems = [
-    { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { href: '/essays', icon: FileText, label: 'My Essays' },
-    { href: '/submit-essay', icon: PlusCircle, label: 'Submit Essay' },
-    { href: '/resources', icon: Library, label: 'Resources' },
-    { href: '/community', icon: Users, label: 'Community' },
-    { href: '/progress', icon: BarChart2, label: 'Progress' },
-  ];
+  let navItems: { href: string; icon: ElementType; label: string }[] = [];
+  let mobileNavItems: { href: string; icon: ElementType; label: string }[] = [];
 
   if (profile.role === 'student') {
-    navItems.push({ href: '/my-teachers', icon: UserPlus, label: 'My Teachers' });
-  }
-
-  navItems.push({ href: '/profile', icon: UserIcon, label: 'My Profile' });
-
-  if (profile.role === 'teacher') {
-    navItems.push(
+    navItems = [
+      { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { href: '/essays', icon: FileText, label: 'My Essays' },
+      { href: '/submit-essay', icon: PlusCircle, label: 'Submit Essay' },
+      { href: '/progress', icon: BarChart2, label: 'Progress' },
+      { href: '/my-teachers', icon: UserPlus, label: 'My Teachers' },
+      { href: '/resources', icon: Library, label: 'Resources' },
+      { href: '/community', icon: Users, label: 'Community' },
+      { href: '/profile', icon: UserIcon, label: 'My Profile' },
+    ];
+    mobileNavItems = [
+      { href: '/dashboard', icon: Home, label: 'Home' },
+      { href: '/submit-essay', icon: PlusSquare, label: 'Submit' },
+      { href: '/progress', icon: BarChart3, label: 'Progress' },
+      { href: '/profile', icon: UserCircle, label: 'Profile' },
+    ];
+  } else if (profile.role === 'teacher') {
+    navItems = [
+      { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
       { href: '/teacher/my-students', icon: Users, label: 'My Students' },
-      { href: '/teacher/resources', icon: School, label: 'Teacher Area' },
-      { href: '/teacher/submissions', icon: ClipboardCheck, label: 'Avaliações' }
-    );
+      { href: '/teacher/submissions', icon: ClipboardCheck, label: 'Submissions' },
+      { href: '/teacher/resources', icon: School, label: 'My Resources' },
+      { href: '/resources', icon: Library, label: 'Resources' },
+      { href: '/community', icon: Users, label: 'Community' },
+      { href: '/profile', icon: UserIcon, label: 'My Profile' },
+    ];
+    mobileNavItems = [
+      { href: '/dashboard', icon: Home, label: 'Home' },
+      { href: '/teacher/submissions', icon: ClipboardCheck, label: 'Submissions' },
+      { href: '/teacher/resources', icon: School, label: 'Resources' },
+      { href: '/profile', icon: UserCircle, label: 'Profile' },
+    ];
   }
-
-  const allNavItems = navItems;
 
   return (
     <>
@@ -73,12 +92,12 @@ export function AppLayoutClient({
             </div>
             <div className="flex-1">
               <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-                {allNavItems.map((item) => (
+                {navItems.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
                     className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${
-                      pathname.startsWith(item.href) && !(item.href === '/dashboard' && pathname !== '/dashboard')
+                      pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard')
                         ? 'bg-muted text-primary'
                         : 'text-muted-foreground'
                     }`}
@@ -107,12 +126,12 @@ export function AppLayoutClient({
               <SheetContent side="left" className="flex flex-col">
                 <nav className="grid gap-2 text-lg font-medium">
                   <Logo />
-                  {allNavItems.map((item) => (
+                  {navItems.map((item) => (
                     <Link
                       key={item.href}
                       href={item.href}
                       className={`mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 hover:text-foreground ${
-                        pathname.startsWith(item.href) && !(item.href === '/dashboard' && pathname !== '/dashboard')
+                        pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard')
                           ? 'bg-muted text-foreground'
                           : 'text-muted-foreground'
                       }`}
@@ -127,13 +146,32 @@ export function AppLayoutClient({
             <div className="w-full flex-1">
               {/* Search can be implemented later */}
             </div>
+            <ThemeToggle />
             <UserNav user={user} profile={profile} />
           </header>
-          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">
+          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background pb-20 md:pb-6">
             {children}
           </main>
         </div>
       </div>
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card md:hidden">
+        <div className="grid h-full max-w-lg grid-cols-4 mx-auto font-medium">
+          {mobileNavItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`inline-flex flex-col items-center justify-center px-2 py-1 rounded-md hover:bg-muted group ${
+                pathname === item.href
+                  ? 'text-primary'
+                  : 'text-muted-foreground'
+              }`}
+            >
+              <item.icon className="w-6 h-6 mb-1" />
+              <span className="text-xs text-center">{item.label}</span>
+            </Link>
+          ))}
+        </div>
+      </nav>
       <ChatTutor />
     </>
   );

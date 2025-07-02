@@ -42,7 +42,7 @@ export default function CommunityPage() {
                 <span>{post.author.name}</span>
                 <span>&middot;</span>
                 <span>
-                  {formatDistanceToNow(new Date(post.createdAt), {
+                  {formatDistanceToNow(new Date(post.created_at), {
                     addSuffix: true,
                   })}
                 </span>

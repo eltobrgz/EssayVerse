@@ -35,7 +35,7 @@ export default function EssayPage({ params }: { params: { id: string } }) {
             <CardTitle className="font-headline text-2xl">{targetEssay.title}</CardTitle>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
                <Badge variant="secondary">{targetEssay.type}</Badge>
-               <span>Submitted on {format(new Date(targetEssay.submittedAt), 'MMMM d, yyyy')}</span>
+               <span>Submitted on {format(new Date(targetEssay.created_at), 'MMMM d, yyyy')}</span>
             </div>
           </CardHeader>
           <CardContent>

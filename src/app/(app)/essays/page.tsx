@@ -54,7 +54,7 @@ export default function EssaysPage() {
                   <Badge variant="outline">{essay.type}</Badge>
                 </TableCell>
                 <TableCell>
-                  {format(new Date(essay.submittedAt), 'MMMM d, yyyy')}
+                  {format(new Date(essay.created_at), 'MMMM d, yyyy')}
                 </TableCell>
                 <TableCell className="text-right font-medium">{essay.score}</TableCell>
               </TableRow>

@@ -2,10 +2,11 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 export async function login(
-  prevState: { message: string } | null,
+  prevState: { success: boolean, message?: string; next?: string; } | null,
   formData: FormData
 ) {
   const supabase = createClient();
@@ -15,7 +16,7 @@ export async function login(
   const next = (formData.get('next') as string) || '/dashboard';
 
   if (!email || !password) {
-    return { message: 'Email and password are required.' };
+    return { success: false, message: 'Email and password are required.' };
   }
 
   const { error } = await supabase.auth.signInWithPassword({
@@ -25,10 +26,12 @@ export async function login(
 
   if (error) {
     // Return a specific error message for debugging
-    return { message: error.message };
+    return { success: false, message: error.message };
   }
 
-  redirect(next);
+  // Revalidate the layout to ensure session state is updated across the app
+  revalidatePath('/', 'layout');
+  return { success: true, next: next };
 }
 
 export async function signup(

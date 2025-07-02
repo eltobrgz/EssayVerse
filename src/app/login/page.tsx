@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,11 +28,25 @@ function LoginButton() {
   );
 }
 
+type LoginState = {
+  success: boolean;
+  message?: string;
+  next?: string;
+} | null;
+
 export default function LoginPage() {
-  const [state, formAction] = useActionState(login, null);
+  const [state, formAction] = useActionState<LoginState, FormData>(login, null);
   const searchParams = useSearchParams();
   const next = searchParams.get('next');
   const urlMessage = searchParams.get('message');
+
+  useEffect(() => {
+    if (state?.success === true && state.next) {
+      // Use window.location.href for a full page reload to ensure the new session is picked up by the server.
+      window.location.href = state.next;
+    }
+  }, [state]);
+
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">

@@ -3,16 +3,12 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  // Create a response object that we can modify and return
-  // This is the correct way to handle the response object in middleware
   let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
   })
 
-  // Create a Supabase client that can be used to manage the user's session
-  // This client is configured to use the request and response cookies
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -23,14 +19,11 @@ export async function middleware(request: NextRequest) {
         },
         set(name: string, value: string, options: CookieOptions) {
           // If the cookie is set, update the request cookies as well.
-          // This is required so that subsequent Server Components read the updated
-          // cookie.
           request.cookies.set({
             name,
             value,
             ...options,
           })
-          // We need to create a new response so that the new cookie is set
           response = NextResponse.next({
             request: {
               headers: request.headers,
@@ -45,17 +38,12 @@ export async function middleware(request: NextRequest) {
         remove(name: string, options: CookieOptions) {
           // If the cookie is removed, update the request cookies as well.
           request.cookies.delete(name)
-           // We need to create a new response so that the cookie is removed
           response = NextResponse.next({
             request: {
               headers: request.headers,
             },
           })
-          response.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
+          response.cookies.delete(name, options)
         },
       },
     }

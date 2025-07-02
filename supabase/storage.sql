@@ -1,30 +1,36 @@
--- Create a bucket for essay images with public access.
--- Run this in the Supabase SQL Editor.
+-- Set up Storage for user avatars and essay images.
+
+-- Avatars Bucket
 insert into storage.buckets (id, name, public)
-values ('essay_images', 'essay_images', true)
+  values ('avatars', 'avatars', true)
 on conflict (id) do nothing;
 
--- Policies for storage
--- Run this in the Supabase SQL Editor.
+create policy "Avatar images are publicly viewable." on storage.objects
+  for select using (bucket_id = 'avatars');
 
--- 1. Allow authenticated users to upload images to the 'essay_images' bucket.
-create policy "Authenticated users can upload essay images."
-on storage.objects for insert to authenticated with check (
-  bucket_id = 'essay_images' and auth.role() = 'authenticated'
-);
+create policy "Authenticated users can upload an avatar." on storage.objects
+  for insert to authenticated with check (bucket_id = 'avatars');
 
--- 2. Allow anyone to view images in the 'essay_images' bucket.
-create policy "Anyone can view essay images."
-on storage.objects for select
-using ( bucket_id = 'essay_images' );
+create policy "Users can update their own avatar." on storage.objects
+  for update using (auth.uid() = owner) with check (bucket_id = 'avatars');
 
--- 3. Allow users to update their own images.
-create policy "Users can update their own images."
-on storage.objects for update to authenticated
-using ( auth.uid() = owner )
-with check ( bucket_id = 'essay_images' );
+create policy "Users can delete their own avatar." on storage.objects
+  for delete using (auth.uid() = owner) with check (bucket_id = 'avatars');
 
--- 4. Allow users to delete their own images.
-create policy "Users can delete their own images."
-on storage.objects for delete to authenticated
-using ( auth.uid() = owner );
+
+-- Essay Images Bucket
+insert into storage.buckets (id, name, public)
+  values ('essay_images', 'essay_images', true)
+on conflict (id) do nothing;
+
+create policy "Essay images are publicly viewable." on storage.objects
+  for select using (bucket_id = 'essay_images');
+
+create policy "Authenticated users can upload essay images." on storage.objects
+  for insert to authenticated with check (bucket_id = 'essay_images');
+
+create policy "Users can update their own essay images." on storage.objects
+  for update using (auth.uid() = owner) with check (bucket_id = 'essay_images');
+
+create policy "Users can delete their own essay images." on storage.objects
+  for delete using (auth.uid() = owner) with check (bucket_id = 'essay_images');

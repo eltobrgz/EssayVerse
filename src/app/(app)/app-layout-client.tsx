@@ -23,7 +23,14 @@ import {
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { Logo } from '@/components/logo';
 import { UserNav } from '@/components/user-nav';
 import type { Profile } from '@/lib/definitions';
@@ -50,7 +57,7 @@ export function AppLayoutClient({
     if (href === '/dashboard') return pathname === href;
     // For other routes, check if the pathname starts with the href
     return pathname.startsWith(href);
-  }
+  };
 
   if (profile.role === 'student') {
     navItems = [
@@ -129,6 +136,12 @@ export function AppLayoutClient({
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="flex flex-col">
+                <SheetHeader>
+                  <SheetTitle className="sr-only">Menu Principal</SheetTitle>
+                  <SheetDescription className="sr-only">
+                    Navegue pelas seções do aplicativo.
+                  </SheetDescription>
+                </SheetHeader>
                 <nav className="grid gap-2 text-lg font-medium">
                   <Logo />
                   {navItems.map((item) => (

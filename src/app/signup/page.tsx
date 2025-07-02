@@ -37,9 +37,9 @@ export default function SignupPage() {
   const isSuccess = type === 'success';
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background p-4">
+    <div className="flex items-center justify-center min-h-screen bg-muted/50 p-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-6">
+        <div className="text-center mb-8">
           <Logo />
         </div>
         <Card>

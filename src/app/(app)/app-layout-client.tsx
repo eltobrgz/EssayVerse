@@ -47,6 +47,10 @@ export function AppLayoutClient({
   let navItems: { href: string; icon: ElementType; label: string }[] = [];
   let mobileNavItems: { href: string; icon: ElementType; label: string }[] = [];
 
+  const isActive = (href: string) => {
+    return pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
+  }
+
   if (profile.role === 'student') {
     navItems = [
       { href: '/dashboard', icon: LayoutDashboard, label: 'Painel' },
@@ -97,8 +101,8 @@ export function AppLayoutClient({
                     key={item.href}
                     href={item.href}
                     className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${
-                      pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard')
-                        ? 'bg-muted text-primary'
+                      isActive(item.href)
+                        ? 'bg-primary/10 text-primary'
                         : 'text-muted-foreground'
                     }`}
                   >
@@ -131,8 +135,8 @@ export function AppLayoutClient({
                       key={item.href}
                       href={item.href}
                       className={`mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 hover:text-foreground ${
-                        pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard')
-                          ? 'bg-muted text-foreground'
+                        isActive(item.href)
+                          ? 'bg-primary/10 text-primary'
                           : 'text-muted-foreground'
                       }`}
                     >
@@ -149,21 +153,21 @@ export function AppLayoutClient({
             <ThemeToggle />
             <UserNav user={user} profile={profile} />
           </header>
-          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background pb-20 md:pb-6">
+          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/50 pb-20 md:pb-6">
             {children}
           </main>
         </div>
       </div>
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card md:hidden">
-        <div className="grid h-full max-w-lg grid-cols-4 mx-auto font-medium">
+        <div className="grid h-16 max-w-lg grid-cols-4 mx-auto font-medium">
           {mobileNavItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className={`inline-flex flex-col items-center justify-center px-2 py-1 rounded-md hover:bg-muted group ${
-                pathname === item.href
+              className={`inline-flex flex-col items-center justify-center px-2 py-1 group ${
+                isActive(item.href)
                   ? 'text-primary'
-                  : 'text-muted-foreground'
+                  : 'text-muted-foreground hover:bg-muted/50'
               }`}
             >
               <item.icon className="w-6 h-6 mb-1" />

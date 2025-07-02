@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowUpRight, PlusCircle, Flame } from 'lucide-react';
+import { ArrowUpRight, PlusCircle, Flame, FileText, Star, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -61,6 +61,7 @@ export default async function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total de Redações</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.total_essays || 0}</div>
@@ -69,6 +70,7 @@ export default async function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Nota Média</CardTitle>
+            <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.average_score?.toFixed(1) || 'N/A'}</div>
@@ -77,6 +79,7 @@ export default async function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Nível Atual</CardTitle>
+            <Trophy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">Nível {profile?.level || 1}</div>

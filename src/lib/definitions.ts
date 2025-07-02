@@ -2,10 +2,15 @@ export type Profile = {
   id: string;
   full_name: string;
   avatar_url: string;
+  role: 'student' | 'teacher';
+  points: number;
+  level: number;
+  current_streak: number;
+  last_login_date: string;
 };
 
 export type Essay = {
-  id: string; // Changed to string to support UUID
+  id: string; 
   user_id: string;
   title: string;
   type: 'ENEM' | 'Fuvest' | 'Custom';
@@ -19,11 +24,26 @@ export type Essay = {
 };
 
 export type CommunityPost = {
-  id: string; // Changed to string to support UUID
+  id: string; 
   user_id: string;
   title: string;
   content: string;
   author: Pick<Profile, 'full_name' | 'avatar_url'>;
   created_at: string;
-  replyCount: number; // This might be handled differently with a real DB
+  replyCount: number; 
 };
+
+export type Badge = {
+    id: number;
+    name: string;
+    description: string;
+    icon_name: string;
+    points_reward: number;
+}
+
+export type UserBadge = {
+    user_id: string;
+    badge_id: number;
+    created_at: string;
+    badges: Badge; // This is for the joined result
+}

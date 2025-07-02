@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import {
   Avatar,
   AvatarFallback,
@@ -22,7 +23,6 @@ export async function UserNav() {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    // This should not happen due to middleware protection, but it's a good safeguard.
     return null; 
   }
 
@@ -57,9 +57,11 @@ export async function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <UserIcon className="mr-2 h-4 w-4" />
-            <span>Profile</span>
+          <DropdownMenuItem asChild>
+            <Link href="/profile">
+              <UserIcon className="mr-2 h-4 w-4" />
+              <span>Profile</span>
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <CreditCard className="mr-2 h-4 w-4" />

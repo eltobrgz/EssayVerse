@@ -11,6 +11,7 @@ import {
   PlusCircle,
   Search,
   Users,
+  User as UserIcon,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ const navItems = [
   { href: '/submit-essay', icon: PlusCircle, label: 'Submit Essay' },
   { href: '/community', icon: Users, label: 'Community' },
   { href: '/progress', icon: BarChart2, label: 'Progress' },
+  { href: '/profile', icon: UserIcon, label: 'My Profile' },
 ];
 
 export default function AppLayout({

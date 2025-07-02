@@ -5,6 +5,7 @@ import { scoreEssay } from '@/ai/flows/score-essay';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { createClient } from './supabase/server';
+import { isToday, isYesterday, subDays } from 'date-fns';
 
 const FormSchema = z.object({
   title: z.string().min(3, { message: 'Title must be at least 3 characters long.'}),
@@ -22,14 +23,50 @@ export type State = {
   message?: string | null;
 };
 
+const XP_PER_ESSAY = 50;
+const XP_BONUS_HIGH_SCORE = 25; // score > 80
+const XP_BONUS_EXCELLENT_SCORE = 50; // score > 90
+const XP_PER_LEVEL = 100;
+
+async function awardBadge(userId: string, badgeId: number, supabase: ReturnType<typeof createClient>) {
+  // Check if user already has the badge
+  const { data: existingBadge, error: checkError } = await supabase
+    .from('user_badges')
+    .select('badge_id')
+    .eq('user_id', userId)
+    .eq('badge_id', badgeId)
+    .maybeSingle();
+
+  if (checkError || existingBadge) {
+    return; // User already has badge or an error occurred
+  }
+
+  // Award the badge
+  await supabase.from('user_badges').insert({ user_id: userId, badge_id: badgeId });
+
+  // Get badge points
+  const { data: badge } = await supabase.from('badges').select('points_reward').eq('id', badgeId).single();
+  const pointsFromBadge = badge?.points_reward || 0;
+
+  // Add points to user profile
+  if (pointsFromBadge > 0) {
+    const { data: profile } = await supabase.from('profiles').select('points').eq('id', userId).single();
+    if (profile) {
+      await supabase
+        .from('profiles')
+        .update({ points: (profile.points || 0) + pointsFromBadge })
+        .eq('id', userId);
+    }
+  }
+}
+
+
 export async function submitAndScoreEssay(prevState: State, formData: FormData) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return {
-      message: 'Authentication error. Please log in again.',
-    };
+    return { message: 'Authentication error. Please log in again.' };
   }
   
   const validatedFields = FormSchema.safeParse({
@@ -49,27 +86,21 @@ export async function submitAndScoreEssay(prevState: State, formData: FormData) 
   const { title, essayType, essayText, image } = validatedFields.data;
   let imageUrl: string | undefined = undefined;
 
-  // Handle image upload if provided
   if (image && image.size > 0) {
     const filePath = `${user.id}/${Date.now()}-${image.name}`;
-    const { error: uploadError } = await supabase.storage
-      .from('essay_images')
-      .upload(filePath, image);
-
+    const { error: uploadError } = await supabase.storage.from('essay_images').upload(filePath, image);
     if (uploadError) {
       console.error('Error uploading image:', uploadError);
-      return {
-        message: 'Failed to upload image. Please try again.',
-      };
+      return { message: 'Failed to upload image. Please try again.' };
     }
     const { data: { publicUrl } } = supabase.storage.from('essay_images').getPublicUrl(filePath);
     imageUrl = publicUrl;
   }
 
-
   try {
     const result = await scoreEssay({ essayType, essayText });
     
+    // 1. Save the essay
     const { data: newEssay, error } = await supabase
       .from('essays')
       .insert({
@@ -83,24 +114,82 @@ export async function submitAndScoreEssay(prevState: State, formData: FormData) 
         estimated_grade: result.estimatedGrade,
         image_url: imageUrl,
       })
-      .select('id')
+      .select('id, score, type')
       .single();
 
-    if (error) {
+    if (error || !newEssay) {
       console.error('Error saving essay to DB:', error);
-      return {
-        message: 'Failed to save your essay after scoring. Please try again.',
-      }
+      return { message: 'Failed to save your essay after scoring. Please try again.' };
     }
 
+    // 2. Gamification Logic
+    let xpFromEssay = XP_PER_ESSAY;
+    if (newEssay.score > 90) xpFromEssay += XP_BONUS_EXCELLENT_SCORE;
+    else if (newEssay.score > 80) xpFromEssay += XP_BONUS_HIGH_SCORE;
+    
+    // Check and award badges
+    const { count: essayCount } = await supabase.from('essays').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
+    if (essayCount === 1) {
+      await awardBadge(user.id, 1, supabase); // "Primeira Redação"
+    }
+
+    const { count: enemCount } = await supabase.from('essays').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('type', 'ENEM').gt('score', 80);
+    if (enemCount === 5) {
+       await awardBadge(user.id, 2, supabase); // "Mestre do ENEM"
+    }
+
+    // 3. Update user points and level
+    const { data: profile } = await supabase.from('profiles').select('points').eq('id', user.id).single();
+    const currentPoints = profile?.points || 0;
+    const totalPoints = currentPoints + xpFromEssay;
+    const newLevel = Math.floor(totalPoints / XP_PER_LEVEL) + 1;
+
+    await supabase.from('profiles').update({ points: totalPoints, level: newLevel }).eq('id', user.id);
+
     revalidatePath('/essays');
-    revalidatePath('/dashboard'); 
+    revalidatePath('/dashboard');
+    revalidatePath('/profile');
     redirect(`/essay/${newEssay.id}`);
 
   } catch (error) {
     console.error('Error scoring essay:', error);
-    return {
-      message: 'An unexpected error occurred while scoring the essay. Please try again.',
-    };
+    return { message: 'An unexpected error occurred while scoring the essay. Please try again.' };
   }
+}
+
+export async function updateUserStreak() {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return;
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('last_login_date, current_streak')
+        .eq('id', user.id)
+        .single();
+    
+    if (!profile) return;
+
+    const today = new Date();
+    const lastLogin = profile.last_login_date ? new Date(profile.last_login_date) : null;
+
+    if (lastLogin && isToday(lastLogin)) {
+        return; // Already logged in today
+    }
+    
+    let newStreak = profile.current_streak || 0;
+    if (lastLogin && isYesterday(lastLogin)) {
+        newStreak++;
+    } else {
+        newStreak = 1; // Reset streak if last login wasn't yesterday or it's the first login
+    }
+    
+    await supabase.from('profiles').update({
+        last_login_date: today.toISOString(),
+        current_streak: newStreak
+    }).eq('id', user.id);
+
+    revalidatePath('/dashboard');
+    revalidatePath('/profile');
 }

@@ -18,10 +18,10 @@ const ScoreEssayInputSchema = z.object({
 export type ScoreEssayInput = z.infer<typeof ScoreEssayInputSchema>;
 
 const ScoreEssayOutputSchema = z.object({
-  score: z.number().describe('The overall score of the essay.'),
-  feedback: z.string().describe('Feedback on the essay, including strengths and weaknesses.'),
-  suggestions: z.string().describe('Suggestions for improving the essay.'),
-  estimatedGrade: z.string().describe('The estimated grade for the essay.'),
+  score: z.number().describe('The overall score of the essay, from 0 to 100.'),
+  feedback: z.string().describe('Detailed feedback on the essay, highlighting strengths and weaknesses in structure, argumentation, and language.'),
+  suggestions: z.string().describe('Actionable suggestions for improving the essay, focusing on specific areas like clarity, grammar, or depth.'),
+  estimatedGrade: z.string().describe('The estimated grade for the essay, such as "A-", "B+", or equivalent based on the scoring system.'),
 });
 export type ScoreEssayOutput = z.infer<typeof ScoreEssayOutputSchema>;
 
@@ -33,15 +33,17 @@ const prompt = ai.definePrompt({
   name: 'scoreEssayPrompt',
   input: {schema: ScoreEssayInputSchema},
   output: {schema: ScoreEssayOutputSchema},
-  prompt: `You are an AI essay scoring assistant. You will receive an essay and its type. You will then provide a score, feedback, suggestions, and an estimated grade for the essay.
+  system: `You are an AI essay scoring assistant. Your task is to provide a detailed evaluation of an essay based on its type and content. Analyze the essay for structure, argumentation, clarity, and grammar.
+
+You MUST respond with a valid JSON object that strictly adheres to the output schema. Do not include any text, markdown, or code block delimiters outside of the JSON object itself.`,
+  prompt: `Please evaluate the following essay.
 
 Essay Type: {{{essayType}}}
-Essay Text: {{{essayText}}}
 
-Score (0-100): 
-Feedback:
-Suggestions:
-Estimated Grade:
+Essay Text:
+---
+{{{essayText}}}
+---
 `,
 });
 

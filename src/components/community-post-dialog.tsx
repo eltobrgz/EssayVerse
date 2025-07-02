@@ -16,9 +16,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { createCommunityPost } from '@/lib/actions';
 import { AlertCircle, Loader2, PlusCircle } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -34,14 +35,19 @@ export function CommunityPostDialog() {
   const initialState = { message: null, errors: {} };
   const [state, dispatch] = useFormState(createCommunityPost, initialState);
   const [open, setOpen] = useState(false);
-  const formRef = React.useRef<HTMLFormElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (state.message === 'Post created successfully.') {
       setOpen(false);
       formRef.current?.reset();
+      toast({
+        title: 'Post Created!',
+        description: 'Your post is now live in the community forum.',
+      });
     }
-  }, [state]);
+  }, [state, toast]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

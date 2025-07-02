@@ -133,7 +133,7 @@ export default async function Dashboard() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center">No essays submitted yet.</TableCell>
+                    <TableCell colSpan={3} className="h-24 text-center">No essays submitted yet.</TableCell>
                   </TableRow>
                 )}
               </TableBody>

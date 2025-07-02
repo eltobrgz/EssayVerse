@@ -6,41 +6,47 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
-import { mockEssays } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { CheckCircle, Lightbulb, MessageSquareQuote } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { createClient } from '@/lib/supabase/server';
 
+export default async function EssayPage({ params }: { params: { id: string } }) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-export default function EssayPage({ params }: { params: { id: string } }) {
-  const essay = mockEssays.find((e) => e.id === params.id);
-
-  if (!essay) {
-    // In a real app, this would be a redirect to a 404 page if data is fetched from a DB
-    // For now, let's use the first mock essay if ID is not found.
-    const firstEssay = mockEssays[0];
-     if (!firstEssay) notFound();
-     return <div>Essay not found</div>
+  if (!user) {
+    notFound();
   }
-  
-  const targetEssay = essay || mockEssays[0];
+
+  const { data: essay, error } = await supabase
+    .from('essays')
+    .select('*')
+    .eq('id', params.id)
+    .eq('user_id', user.id) // Security: Ensures user can only see their own essay
+    .single();
+
+  if (error || !essay) {
+    notFound();
+  }
 
   return (
     <div className="grid md:grid-cols-3 gap-6">
       <div className="md:col-span-2">
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline text-2xl">{targetEssay.title}</CardTitle>
+            <CardTitle className="font-headline text-2xl">{essay.title}</CardTitle>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
-               <Badge variant="secondary">{targetEssay.type}</Badge>
-               <span>Submitted on {format(new Date(targetEssay.created_at), 'MMMM d, yyyy')}</span>
+              <Badge variant="secondary">{essay.type}</Badge>
+              <span>Submitted on {format(new Date(essay.created_at), 'MMMM d, yyyy')}</span>
             </div>
           </CardHeader>
           <CardContent>
             <p className="whitespace-pre-wrap leading-relaxed">
-              {targetEssay.content}
+              {essay.content}
             </p>
           </CardContent>
         </Card>
@@ -53,11 +59,13 @@ export default function EssayPage({ params }: { params: { id: string } }) {
           </CardHeader>
           <CardContent>
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-bold">{targetEssay.score}</span>
+              <span className="text-4xl font-bold">{essay.score}</span>
               <span className="text-lg text-muted-foreground">/ 100</span>
             </div>
-            <Progress value={targetEssay.score} className="mt-2" />
-            <p className="text-center text-sm font-medium mt-2">Estimated Grade: <span className="text-primary">{targetEssay.estimatedGrade}</span></p>
+            <Progress value={essay.score} className="mt-2" />
+            <p className="text-center text-sm font-medium mt-2">
+              Estimated Grade: <span className="text-primary">{essay.estimated_grade}</span>
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -68,18 +76,18 @@ export default function EssayPage({ params }: { params: { id: string } }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
-            {targetEssay.feedback}
+            {essay.feedback}
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-               <Lightbulb className="h-5 w-5 text-primary" />
+              <Lightbulb className="h-5 w-5 text-primary" />
               Suggestions
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
-            {targetEssay.suggestions}
+            {essay.suggestions}
           </CardContent>
         </Card>
       </div>

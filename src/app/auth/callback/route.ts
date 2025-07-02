@@ -5,7 +5,6 @@ import type { NextRequest } from 'next/server';
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/dashboard';
   const requestUrl = new URL(request.url);
   const origin = requestUrl.origin;
 
@@ -13,7 +12,8 @@ export async function GET(request: NextRequest) {
     const supabase = createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+      // On successful email confirmation, redirect to the simple welcome page.
+      return NextResponse.redirect(`${origin}/welcome`);
     }
   }
 

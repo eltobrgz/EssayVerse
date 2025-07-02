@@ -20,9 +20,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get('next') || '/dashboard';
   const urlMessage = searchParams.get('message');
   
   const [isLoading, setIsLoading] = useState(false);
@@ -49,9 +47,10 @@ export default function LoginPage() {
             throw signInError;
         }
 
-        // Use router.refresh() to ensure the session is updated on the server
-        // and the middleware can correctly handle the redirect.
-        router.refresh();
+        // On success, force a HARD redirect to our diagnostic page.
+        // This makes the browser request the page from scratch, sending the new auth cookie.
+        // The middleware will then see the valid session and allow access.
+        window.location.href = '/welcome';
 
     } catch (err: any) {
         setError(err.message || 'An unexpected error occurred.');

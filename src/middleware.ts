@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
 
-const protectedRoutes = ['/dashboard', '/essays', '/submit-essay', '/community', '/progress', '/profile', '/resources', '/teacher'];
+const protectedRoutes = ['/dashboard', '/welcome', '/essays', '/submit-essay', '/community', '/progress', '/profile', '/resources', '/teacher'];
 const authRoutes = ['/login', '/signup'];
 
 export async function middleware(request: NextRequest) {
@@ -40,9 +40,9 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   const { pathname } = request.nextUrl;
 
-  // Redirect logged-in users from auth routes to the dashboard
+  // Redirect logged-in users from auth routes to the welcome page
   if (user && authRoutes.some((route) => pathname.startsWith(route))) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/welcome', request.url));
   }
 
   // Redirect unauthenticated users from protected routes to the login page

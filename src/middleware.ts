@@ -20,9 +20,14 @@ export async function middleware(request: NextRequest) {
         get(name: string) {
           return request.cookies.get(name)?.value
         },
-        // IMPORTANT: The set and remove methods must modify the `response` object
-        // that is returned at the end of the middleware.
         set(name: string, value: string, options: CookieOptions) {
+          // If the cookie is set, update the request cookies as well.
+          // This is required so that subsequent middleware reads the updated cookie.
+          request.cookies.set({
+            name,
+            value,
+            ...options,
+          })
           response.cookies.set({
             name,
             value,
@@ -30,6 +35,9 @@ export async function middleware(request: NextRequest) {
           })
         },
         remove(name: string, options: CookieOptions) {
+          // If the cookie is removed, update the request cookies as well.
+          // This is required so that subsequent middleware reads the updated cookie.
+          request.cookies.delete(name)
           response.cookies.set({
             name,
             value: '',

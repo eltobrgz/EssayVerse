@@ -204,9 +204,6 @@ export async function updateUserStreak() {
         last_login_date: today.toISOString(),
         current_streak: newStreak
     }).eq('id', user.id);
-
-    revalidatePath('/dashboard');
-    revalidatePath('/profile');
 }
 
 

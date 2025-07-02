@@ -3,8 +3,6 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  // O objeto `response` é criado aqui e será modificado pelos manipuladores
-  // de cookie abaixo se a sessão precisar ser atualizada.
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -20,21 +18,16 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          // Se o cookie for definido, atualize-o nos cookies da requisição.
-          // Isso é crucial para que os Server Components possam acessar a sessão atualizada.
           request.cookies.set({
             name,
             value,
             ...options,
           })
-          // A resposta é recriada para garantir que ela use o valor atualizado
-          // dos cookies da requisição.
           response = NextResponse.next({
             request: {
               headers: request.headers,
             },
           })
-          // O cookie é definido na resposta para ser enviado de volta ao navegador.
           response.cookies.set({
             name,
             value,
@@ -42,7 +35,6 @@ export async function middleware(request: NextRequest) {
           })
         },
         remove(name: string, options: CookieOptions) {
-          // Se o cookie for removido, atualize-o nos cookies da requisição.
           request.cookies.set({
             name,
             value: '',
@@ -59,7 +51,6 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Atualiza a sessão do usuário se expirada.
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -98,7 +89,16 @@ export async function middleware(request: NextRequest) {
 
   // Se o usuário está autenticado e tenta acessar uma rota de autenticação, redireciona para o dashboard
   if (user && isAuthRoute) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    // Preserva os cabeçalhos (incluindo Set-Cookie) ao redirecionar
+    const redirectResponse = NextResponse.redirect(new URL('/dashboard', request.url));
+    
+    // Copia todos os cookies da resposta original (que pode conter a sessão atualizada)
+    // para a nova resposta de redirecionamento.
+    response.cookies.getAll().forEach(cookie => {
+      redirectResponse.cookies.set(cookie);
+    });
+
+    return redirectResponse;
   }
   
   // Retorna a resposta, que pode ter sido modificada pelos manipuladores de cookie.

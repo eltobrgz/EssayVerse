@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -16,8 +17,10 @@ import { Logo } from '@/components/logo';
 import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
 
 export default function SignupPage() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -33,7 +36,6 @@ export default function SignupPage() {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
     
-    // Use client-side Supabase client
     const supabase = createClient();
     const origin = window.location.origin;
 
@@ -55,11 +57,15 @@ export default function SignupPage() {
       return;
     }
 
-    if (data.user && !data.session) {
-      setSuccessMessage('Please check your email to confirm your account before logging in.');
+    if (data.user && data.user.identities && data.user.identities.length === 0) {
+      setError('Este email já está em uso.');
+      return;
+    }
+
+    if (data.user) {
+      setSuccessMessage('Sucesso! Por favor, verifique sua caixa de entrada para confirmar seu email antes de fazer login.');
     } else {
-      // This case is unlikely with email confirmation but good to handle
-      setError('An unexpected issue occurred. Please try again.');
+      setError('Ocorreu um erro inesperado. Por favor, tente novamente.');
     }
   };
 
@@ -80,7 +86,7 @@ export default function SignupPage() {
             {successMessage ? (
               <Alert variant="default" className="border-green-500 text-green-700">
                 <CheckCircle className="h-4 w-4 !text-green-500" />
-                <AlertTitle>Check your email!</AlertTitle>
+                <AlertTitle>Verifique seu email!</AlertTitle>
                 <AlertDescription>{successMessage}</AlertDescription>
               </Alert>
             ) : (

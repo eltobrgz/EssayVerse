@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,12 +27,7 @@ function LoginButton() {
   );
 }
 
-type LoginState = {
-  message?: string;
-} | null;
-
 export default function LoginPage() {
-  const [state, formAction] = useActionState<LoginState, FormData>(login, null);
   const searchParams = useSearchParams();
   const next = searchParams.get('next');
   const urlMessage = searchParams.get('message');
@@ -52,7 +46,7 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form action={formAction} className="grid gap-4">
+            <form action={login} className="grid gap-4">
               {next && <input type="hidden" name="next" value={next} />}
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
@@ -77,11 +71,11 @@ export default function LoginPage() {
                 <Input id="password" name="password" type="password" required />
               </div>
 
-              {(state?.message || urlMessage) && (
+              {urlMessage && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Login Failed</AlertTitle>
-                  <AlertDescription>{state?.message || urlMessage}</AlertDescription>
+                  <AlertDescription>{urlMessage}</AlertDescription>
                 </Alert>
               )}
               

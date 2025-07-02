@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import { AppLayoutClient } from './app-layout-client';
 import type { Profile } from '@/lib/definitions';
+import type { User } from '@supabase/supabase-js';
 
 export default async function AppLayout({
   children,
@@ -31,7 +32,7 @@ export default async function AppLayout({
   }
 
   return (
-    <AppLayoutClient profile={profile}>
+    <AppLayoutClient user={user} profile={profile}>
       {children}
     </AppLayoutClient>
   );

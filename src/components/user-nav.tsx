@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import {
   Avatar,
@@ -14,28 +16,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { createClient } from '@/lib/supabase/server';
 import { CreditCard, LogOut, Settings, User as UserIcon } from 'lucide-react';
 import { logout } from '@/app/auth/actions';
+import type { User } from '@supabase/supabase-js';
+import type { Profile } from '@/lib/definitions';
 
-export async function UserNav() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    return null; 
+export function UserNav({ user, profile }: { user: User | null, profile: Profile | null }) {
+  if (!user || !profile) {
+    return null;
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, avatar_url')
-    .eq('id', user.id)
-    .single();
-
   const userEmail = user.email || '';
-  const userName = profile?.full_name || userEmail.split('@')[0];
-  const userAvatar = profile?.avatar_url;
-  
+  const userName = profile.full_name || userEmail.split('@')[0];
+  const userAvatar = profile.avatar_url;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -76,8 +70,8 @@ export async function UserNav() {
         <form action={logout}>
           <button type="submit" className="w-full">
             <DropdownMenuItem>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
             </DropdownMenuItem>
           </button>
         </form>

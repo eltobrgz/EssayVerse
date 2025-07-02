@@ -23,12 +23,15 @@ import { Logo } from '@/components/logo';
 import { UserNav } from '@/components/user-nav';
 import type { Profile } from '@/lib/definitions';
 import { ChatTutor } from '@/components/chat-tutor';
+import type { User } from '@supabase/supabase-js';
 
 export function AppLayoutClient({
   children,
+  user,
   profile,
 }: {
   children: React.ReactNode;
+  user: User | null;
   profile: Profile;
 }) {
   const pathname = usePathname();
@@ -114,7 +117,7 @@ export function AppLayoutClient({
             <div className="w-full flex-1">
               {/* Search can be implemented later */}
             </div>
-            <UserNav />
+            <UserNav user={user} profile={profile} />
           </header>
           <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">
             {children}

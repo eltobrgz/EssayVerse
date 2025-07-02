@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { createClient } from './supabase/server';
 import { isToday, isYesterday } from 'date-fns';
-import type { Essay, Quiz, QuizOption, QuizQuestion, Resource } from './definitions';
+import type { Essay, Quiz, QuizOption, QuizQuestion, Resource, State } from './definitions';
 
 const EssayFormSchema = z.object({
   title: z.string().min(3, { message: 'Title must be at least 3 characters long.'}),
@@ -36,24 +36,6 @@ const TeacherFeedbackSchema = z.object({
   feedbackText: z.string().min(10, { message: 'Feedback must be at least 10 characters long.'}),
   correctedImage: z.instanceof(File).optional(),
 });
-
-
-export type State = {
-  errors?: {
-    title?: string[];
-    essayType?: string[];
-    essayText?: string[];
-    content?: string[];
-    image?: string[];
-    video?: string[];
-    resourceType?: string[];
-    visibility?: string[];
-    videoUrl?: string[];
-    feedbackText?: string[];
-    correctedImage?: string[];
-  };
-  message?: string | null;
-};
 
 const XP_PER_ESSAY = 50;
 const XP_BONUS_HIGH_SCORE = 25; // score > 80

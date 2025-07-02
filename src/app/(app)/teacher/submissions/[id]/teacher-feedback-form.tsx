@@ -12,8 +12,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { submitTeacherFeedback, type State } from '@/lib/actions';
-import type { Essay } from '@/lib/definitions';
+import { submitTeacherFeedback } from '@/lib/actions';
+import type { Essay, State } from '@/lib/definitions';
 import { useToast } from '@/hooks/use-toast';
 
 function SubmitButton() {

@@ -99,3 +99,21 @@ export type StudentQuizAttempt = {
   total_questions: number;
   completed_at: string;
 };
+
+// This is the type for the state of forms that use server actions.
+export type State = {
+  errors?: {
+    title?: string[];
+    essayType?: string[];
+    essayText?: string[];
+    content?: string[];
+    image?: string[];
+    video?: string[];
+    resourceType?: string[];
+    visibility?: string[];
+    videoUrl?: string[];
+    feedbackText?: string[];
+    correctedImage?: string[];
+  };
+  message?: string | null;
+};

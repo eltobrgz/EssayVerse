@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 export async function login(
-  prevState: { success: boolean, message?: string; next?: string; } | null,
+  prevState: { message?: string } | null,
   formData: FormData
 ) {
   const supabase = createClient();
@@ -16,7 +16,7 @@ export async function login(
   const next = (formData.get('next') as string) || '/dashboard';
 
   if (!email || !password) {
-    return { success: false, message: 'Email and password are required.' };
+    return { message: 'Email and password are required.' };
   }
 
   const { error } = await supabase.auth.signInWithPassword({
@@ -25,13 +25,13 @@ export async function login(
   });
 
   if (error) {
-    // Return a specific error message for debugging
-    return { success: false, message: error.message };
+    console.error('Login error:', error); // Log the error object for debugging
+    return { message: error.message };
   }
 
-  // Revalidate the layout to ensure session state is updated across the app
+  // On success, revalidate and redirect. This path does not return a state.
   revalidatePath('/', 'layout');
-  return { success: true, next: next };
+  redirect(next);
 }
 
 export async function signup(
@@ -74,6 +74,7 @@ export async function signup(
   
   // This case should ideally not happen if email confirmation is on,
   // but if it is, we redirect.
+  revalidatePath('/', 'layout');
   redirect('/dashboard');
 }
 

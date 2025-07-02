@@ -32,6 +32,7 @@ export default function LoginPage() {
   const [state, formAction] = useActionState(login, null);
   const searchParams = useSearchParams();
   const next = searchParams.get('next');
+  const urlMessage = searchParams.get('message');
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
@@ -72,11 +73,11 @@ export default function LoginPage() {
                 <Input id="password" name="password" type="password" required />
               </div>
 
-              {state?.message && (
+              {(state?.message || urlMessage) && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Login Failed</AlertTitle>
-                  <AlertDescription>{state.message}</AlertDescription>
+                  <AlertDescription>{state?.message || urlMessage}</AlertDescription>
                 </Alert>
               )}
               

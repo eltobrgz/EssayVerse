@@ -2,6 +2,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 export async function login(
@@ -24,10 +25,11 @@ export async function login(
   });
 
   if (error) {
-    // Return a more generic error message for security
-    return { message: 'Invalid login credentials.' };
+    // Return a specific error message for debugging
+    return { message: error.message };
   }
 
+  revalidatePath('/', 'layout');
   redirect(next);
 }
 
@@ -68,16 +70,11 @@ export async function signup(
       success: true,
     };
   }
-
+  
   // This case should ideally not happen if email confirmation is on,
-  // but if it is, we redirect.
-  if (data.session) {
-    redirect('/dashboard');
-  }
-
-  return {
-    message: 'An unexpected error occurred. Please try again.',
-  };
+  // but if it is, we revalidate and redirect.
+  revalidatePath('/', 'layout');
+  redirect('/dashboard');
 }
 
 export async function logout() {

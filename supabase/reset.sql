@@ -1,33 +1,38 @@
--- Use com cuidado! Este script apaga todos os dados das tabelas e o bucket de storage.
+-- This script will delete all data and reset the database schema.
+-- Use with caution.
 
--- Desabilita a segurança de nível de linha temporariamente para apagar os dados
-alter table "essays" disable row level security;
-alter table "community_posts" disable row level security;
-alter table "profiles" disable row level security;
+-- Drop tables in reverse order of creation due to dependencies
+DROP TABLE IF EXISTS public.user_badges;
+DROP TABLE IF EXISTS public.badges;
+DROP TABLE IF EXISTS public.community_posts;
+DROP TABLE IF EXISTS public.essays;
+DROP TABLE IF EXISTS public.profiles;
 
--- Apaga todos os dados das tabelas
-delete from "essays";
-delete from "community_posts";
-delete from "profiles";
-delete from "auth.users"; -- Cuidado: isso apaga todos os usuários
+-- Drop custom types
+DROP TYPE IF EXISTS public.user_role;
 
--- Reabilita a segurança de nível de linha
-alter table "essays" enable row level security;
-alter table "community_posts" enable row level security;
-alter table "profiles" enable row level security;
+-- Drop functions and triggers
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+DROP FUNCTION IF EXISTS public.handle_new_user;
 
--- Apaga o bucket de imagens e seu conteúdo
-delete from storage.objects where bucket_id = 'essay_images';
--- A exclusão do bucket em si deve ser feita na UI do Supabase se necessário.
+-- Empty storage buckets
+TRUNCATE storage.objects;
 
--- Drop trigger and function
-drop trigger if exists on_auth_user_created on auth.users;
-drop function if exists public.handle_new_user;
+-- Re-create the function and trigger if needed (or run tables.sql again)
+-- This part is commented out as you'd typically run the setup scripts again.
+/*
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, full_name, avatar_url)
+  VALUES (new.id, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url');
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Drop tables
-drop table if exists essays;
-drop table if exists community_posts;
-drop table if exists profiles;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+*/
 
-
-select 'Reset completo. Tabelas e storage limpos.' as status;
+SELECT 'Database reset complete.';

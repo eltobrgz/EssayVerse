@@ -1,56 +1,89 @@
--- Apaga tabelas antigas se existirem para um começo limpo
-drop table if exists essays cascade;
-drop table if exists community_posts cascade;
-drop table if exists profiles cascade;
+-- Create a user_role type
+CREATE TYPE public.user_role AS ENUM ('student', 'teacher');
 
--- Tabela de Perfis de Usuários
--- Armazena dados públicos dos usuários.
-create table profiles (
-  id uuid references auth.users on delete cascade not null primary key,
-  updated_at timestamp with time zone,
+-- Create a table for public profiles
+CREATE TABLE public.profiles (
+  id uuid NOT NULL REFERENCES auth.users ON DELETE CASCADE,
   full_name text,
-  avatar_url text
+  avatar_url text,
+  role user_role DEFAULT 'student'::user_role NOT NULL,
+  points integer DEFAULT 0 NOT NULL,
+  level integer DEFAULT 1 NOT NULL,
+  current_streak integer DEFAULT 0 NOT NULL,
+  last_login_date date,
+  PRIMARY KEY (id)
 );
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- Tabela de Redações (Essays)
-create table essays (
-  id uuid default gen_random_uuid() primary key,
-  user_id uuid references profiles on delete cascade not null,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  title text not null,
-  type text not null,
-  content text not null,
-  image_url text,
-  score integer not null,
-  feedback text not null,
-  suggestions text not null,
-  estimated_grade text not null
+-- Create a table for essays
+CREATE TABLE public.essays (
+    id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+    user_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+    title text NOT NULL,
+    type text NOT NULL,
+    content text NOT NULL,
+    image_url text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    score integer,
+    feedback text,
+    suggestions text,
+    estimated_grade text
 );
+ALTER TABLE public.essays ENABLE ROW LEVEL SECURITY;
 
--- Tabela de Posts da Comunidade
-create table community_posts (
-  id uuid default gen_random_uuid() primary key,
-  user_id uuid references profiles on delete cascade not null,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  title text not null,
-  content text not null
+-- Create a table for community posts
+CREATE TABLE public.community_posts (
+    id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+    user_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+    title text NOT NULL,
+    content text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
 );
+ALTER TABLE public.community_posts ENABLE ROW LEVEL SECURITY;
 
--- Função para criar um perfil automaticamente ao registrar um novo usuário
-create or replace function public.handle_new_user()
-returns trigger as $$
-begin
-  insert into public.profiles (id, full_name, avatar_url)
-  values (new.id, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url');
-  return new;
-end;
-$$ language plpgsql security definer;
+-- Create a table for badges
+CREATE TABLE public.badges (
+    id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+    name text NOT NULL UNIQUE,
+    description text NOT NULL,
+    icon text NOT NULL -- e.g., 'Award', 'BookOpenCheck', etc. from lucide-react
+);
+ALTER TABLE public.badges ENABLE ROW LEVEL SECURITY;
 
--- Gatilho (trigger) que chama a função ao criar um usuário
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute procedure public.handle_new_user();
+-- Create a join table for users and badges
+CREATE TABLE public.user_badges (
+    user_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+    badge_id uuid REFERENCES public.badges(id) ON DELETE CASCADE NOT NULL,
+    earned_at timestamp with time zone DEFAULT now() NOT NULL,
+    PRIMARY KEY (user_id, badge_id)
+);
+ALTER TABLE public.user_badges ENABLE ROW LEVEL SECURITY;
 
--- Permite que o Supabase use a tabela de perfis
-alter table profiles
-  enable row level security;
+
+-- Function to create a public profile on new user signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, full_name, avatar_url)
+  VALUES (new.id, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url');
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger to call the function on new user signup
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+-- Seed badges table with initial data
+INSERT INTO public.badges (name, description, icon) VALUES
+('Primeira Redação', 'Você enviou sua primeira redação e começou sua jornada!', 'Feather'),
+('Estudante Consistente', 'Enviou 3 redações em uma semana. A prática leva à perfeição!', 'CalendarClock'),
+('Nota Alta', 'Alcançou uma nota 90+ em uma redação. Impressionante!', 'Sparkles'),
+('Superação', 'Aumentou sua nota em 10 pontos em relação à redação anterior.', 'TrendingUp'),
+('Mestre do ENEM', 'Enviou 5 redações do tipo ENEM com nota acima de 80.', 'BookMarked'),
+('Mestre da Fuvest', 'Enviou 5 redações do tipo Fuvest com nota acima de 80.', 'BookMarked'),
+('Participante Ativo', 'Fez 5 posts ou comentários na comunidade.', 'MessageSquarePlus'),
+('Mentor da Comunidade', 'Seu post na comunidade foi marcado como "Redação Modelo".', 'GraduationCap'),
+('Sequência de 3 Dias', 'Entrou no aplicativo por 3 dias seguidos.', 'Flame'),
+('Sequência de 7 Dias', 'Entrou no aplicativo por uma semana inteira!', 'Flame');

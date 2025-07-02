@@ -2,7 +2,6 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 export async function login(
@@ -29,7 +28,6 @@ export async function login(
     return { message: error.message };
   }
 
-  revalidatePath('/', 'layout');
   redirect(next);
 }
 
@@ -72,8 +70,7 @@ export async function signup(
   }
   
   // This case should ideally not happen if email confirmation is on,
-  // but if it is, we revalidate and redirect.
-  revalidatePath('/', 'layout');
+  // but if it is, we redirect.
   redirect('/dashboard');
 }
 

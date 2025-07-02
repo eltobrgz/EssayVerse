@@ -27,7 +27,6 @@ export async function login(
     return { message: error.message };
   }
 
-  revalidatePath('/', 'layout');
   redirect('/dashboard');
 }
 
@@ -63,7 +62,6 @@ export async function signup(
     return { message: 'An user with this email already exists.' };
   }
 
-  revalidatePath('/', 'layout');
   redirect('/dashboard');
 }
 

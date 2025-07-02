@@ -36,10 +36,10 @@ export default function CommunityPage() {
               </CardTitle>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Avatar className="h-6 w-6">
-                  <AvatarImage src={post.author.avatarUrl} />
-                  <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={post.author.avatar_url} />
+                  <AvatarFallback>{post.author.full_name.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <span>{post.author.name}</span>
+                <span>{post.author.full_name}</span>
                 <span>&middot;</span>
                 <span>
                   {formatDistanceToNow(new Date(post.created_at), {

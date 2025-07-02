@@ -53,8 +53,8 @@ export const mockCommunityPosts: CommunityPost[] = [
     title: 'How do you structure a perfect ENEM essay introduction?',
     content: 'I\'m struggling to write compelling introductions for my ENEM practice essays. Does anyone have a template or a set of tips they follow? Any help would be appreciated!',
     author: {
-      name: 'Maria Clara',
-      avatarUrl: 'https://placehold.co/100x100'
+      full_name: 'Maria Clara',
+      avatar_url: 'https://placehold.co/100x100'
     },
     created_at: '2024-07-20T11:45:00Z',
     replyCount: 5,
@@ -65,8 +65,8 @@ export const mockCommunityPosts: CommunityPost[] = [
     title: 'Model Essay: The Importance of Historical Knowledge (Fuvest)',
     content: 'Hey everyone, I scored well on this essay about historical knowledge for Fuvest and wanted to share it as a potential model. Hope it helps some of you. Feel free to ask questions or give feedback.',
     author: {
-      name: 'Pedro Almeida (Teacher)',
-      avatarUrl: 'https://placehold.co/100x100'
+      full_name: 'Pedro Almeida (Teacher)',
+      avatar_url: 'https://placehold.co/100x100'
     },
     created_at: '2024-07-19T18:20:00Z',
     replyCount: 12,
@@ -77,8 +77,8 @@ export const mockCommunityPosts: CommunityPost[] = [
     title: 'Resources for improving vocabulary?',
     content: 'I\'ve received feedback that my vocabulary is a bit repetitive. What are the best resources (apps, books, websites) you guys use to expand your vocabulary for academic writing?',
     author: {
-      name: 'Lucas Souza',
-      avatarUrl: 'https://placehold.co/100x100'
+      full_name: 'Lucas Souza',
+      avatar_url: 'https://placehold.co/100x100'
     },
     created_at: '2024-07-18T15:00:00Z',
     replyCount: 8,

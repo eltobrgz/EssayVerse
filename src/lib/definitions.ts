@@ -1,17 +1,16 @@
-export type User = {
+export type Profile = {
   id: string;
-  name: string;
-  email: string;
-  avatarUrl: string;
+  full_name: string;
+  avatar_url: string;
 };
 
 export type Essay = {
-  id: string;
+  id: string; // Changed to string to support UUID
   user_id: string;
   title: string;
   type: 'ENEM' | 'Fuvest' | 'Custom';
   content: string;
-  imageUrl?: string;
+  image_url?: string;
   created_at: string;
   score: number;
   feedback: string;
@@ -20,11 +19,11 @@ export type Essay = {
 };
 
 export type CommunityPost = {
-  id: string;
+  id: string; // Changed to string to support UUID
   user_id: string;
   title: string;
   content: string;
-  author: Pick<User, 'name' | 'avatarUrl'>;
+  author: Pick<Profile, 'full_name' | 'avatar_url'>;
   created_at: string;
-  replyCount: number;
+  replyCount: number; // This might be handled differently with a real DB
 };

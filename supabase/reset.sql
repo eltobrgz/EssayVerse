@@ -1,16 +1,33 @@
--- WARNING: This script will delete all data in the specified tables.
--- It's intended for development and testing purposes.
--- Make sure you have backups if you are running this on a production database.
+-- Use com cuidado! Este script apaga todos os dados das tabelas e o bucket de storage.
 
--- Drop tables in reverse order of dependency
-drop table if exists public.community_posts;
-drop table if exists public.essays;
-drop table if exists public.profiles;
+-- Desabilita a segurança de nível de linha temporariamente para apagar os dados
+alter table "essays" disable row level security;
+alter table "community_posts" disable row level security;
+alter table "profiles" disable row level security;
 
--- Supabase creates a trigger on auth.users which needs to be removed.
+-- Apaga todos os dados das tabelas
+delete from "essays";
+delete from "community_posts";
+delete from "profiles";
+delete from "auth.users"; -- Cuidado: isso apaga todos os usuários
+
+-- Reabilita a segurança de nível de linha
+alter table "essays" enable row level security;
+alter table "community_posts" enable row level security;
+alter table "profiles" enable row level security;
+
+-- Apaga o bucket de imagens e seu conteúdo
+delete from storage.objects where bucket_id = 'essay_images';
+-- A exclusão do bucket em si deve ser feita na UI do Supabase se necessário.
+
+-- Drop trigger and function
 drop trigger if exists on_auth_user_created on auth.users;
--- and the function associated with the trigger
-drop function if exists public.handle_new_user();
+drop function if exists public.handle_new_user;
 
--- NOTE: Storage buckets and their objects are not deleted by this script.
--- You might need to manually delete them from the Supabase UI.
+-- Drop tables
+drop table if exists essays;
+drop table if exists community_posts;
+drop table if exists profiles;
+
+
+select 'Reset completo. Tabelas e storage limpos.' as status;

@@ -34,6 +34,20 @@ export function EssaySubmissionForm() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
+            <Label htmlFor="title">Essay Title</Label>
+            <Input 
+              id="title"
+              name="title"
+              placeholder="e.g., The Role of Technology in Education"
+              required
+            />
+            {state.errors?.title &&
+              state.errors.title.map((error: string) => (
+                <p className="text-sm font-medium text-destructive" key={error}>{error}</p>
+              ))
+            }
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="essayType">Essay Type</Label>
             <Select name="essayType" required>
               <SelectTrigger id="essayType">
@@ -68,7 +82,7 @@ export function EssaySubmissionForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="image">Upload Image (Optional)</Label>
-            <Input id="image" type="file" />
+            <Input id="image" name="image" type="file" />
             <p className="text-sm text-muted-foreground">
               You can upload an image related to your essay, like a prompt or a chart.
             </p>

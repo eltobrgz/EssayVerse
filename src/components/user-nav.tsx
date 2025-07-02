@@ -2,8 +2,8 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,30 +12,46 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { mockUser } from "@/lib/data";
-import { CreditCard, LogOut, Settings, User as UserIcon } from "lucide-react";
-import Link from "next/link";
+} from '@/components/ui/dropdown-menu';
+import { createClient } from '@/lib/supabase/server';
+import { CreditCard, LogOut, Settings, User as UserIcon } from 'lucide-react';
+import { logout } from '@/app/auth/actions';
 
-export function UserNav() {
-  const user = mockUser;
+export async function UserNav() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
+  if (!user) {
+    // This should not happen due to middleware protection, but it's a good safeguard.
+    return null; 
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name, avatar_url')
+    .eq('id', user.id)
+    .single();
+
+  const userEmail = user.email || '';
+  const userName = profile?.full_name || userEmail.split('@')[0];
+  const userAvatar = profile?.avatar_url;
+  
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user.avatarUrl} alt={`@${user.name}`} />
-            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+            <AvatarImage src={userAvatar || undefined} alt={`@${userName}`} />
+            <AvatarFallback>{userName.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.name}</p>
+            <p className="text-sm font-medium leading-none">{userName}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              {user.email}
+              {userEmail}
             </p>
           </div>
         </DropdownMenuLabel>
@@ -55,12 +71,14 @@ export function UserNav() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/">
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Log out</span>
-          </Link>
-        </DropdownMenuItem>
+        <form action={logout}>
+          <button type="submit" className="w-full">
+            <DropdownMenuItem>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+            </DropdownMenuItem>
+          </button>
+        </form>
       </DropdownMenuContent>
     </DropdownMenu>
   );

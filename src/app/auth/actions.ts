@@ -27,11 +27,12 @@ export async function login(
     return { message: error.message };
   }
 
+  revalidatePath('/', 'layout');
   redirect('/dashboard');
 }
 
 export async function signup(
-  prevState: { message: string } | null,
+  prevState: { message: string, success?: boolean } | null,
   formData: FormData
 ) {
   const supabase = createClient();
@@ -51,6 +52,9 @@ export async function signup(
       data: {
         full_name: fullName,
       },
+      // This is the default, but it's good to be explicit
+      // The user will be sent a confirmation email.
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback`,
     },
   });
 
@@ -58,11 +62,22 @@ export async function signup(
     return { message: error.message };
   }
   
-  if (data.user && data.user.identities && data.user.identities.length === 0) {
-    return { message: 'An user with this email already exists.' };
+  // If the user is created but needs to confirm their email, 
+  // we don't get a session. This is the state we want to inform the user about.
+  if (data.user && !data.session) {
+    return { 
+      message: 'Please check your email to confirm your account before logging in.',
+      success: true,
+    };
   }
 
-  redirect('/dashboard');
+  // If for some reason auto-confirmation is on, and we get a session, we redirect.
+  if (data.session) {
+    redirect('/dashboard');
+  }
+
+  // Fallback for any other unexpected case
+  return { message: 'An unexpected error occurred. Please try again.' };
 }
 
 export async function logout() {

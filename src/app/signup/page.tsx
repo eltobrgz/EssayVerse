@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/logo';
 import { signup } from '@/app/auth/actions';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 function SignupButton() {
@@ -28,7 +28,7 @@ function SignupButton() {
 }
 
 export default function SignupPage() {
-  const [state, formAction] = useActionState(signup, null);
+  const [state, formAction] = useActionState(signup, { message: null, success: false });
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
@@ -44,6 +44,15 @@ export default function SignupPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {state?.success ? (
+               <Alert variant="default" className="border-green-500 text-green-700">
+                  <CheckCircle className="h-4 w-4 !text-green-500" />
+                  <AlertTitle>Check your email!</AlertTitle>
+                  <AlertDescription>
+                   {state.message}
+                  </AlertDescription>
+                </Alert>
+            ) : (
             <form action={formAction} className="grid gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="fullName">Full Name</Label>
@@ -63,15 +72,16 @@ export default function SignupPage() {
                 <Label htmlFor="password">Password</Label>
                 <Input id="password" name="password" type="password" required />
               </div>
-              {state?.message && (
+              {state?.message && !state.success && (
                 <Alert variant="destructive">
-                  <AlertCircle />
+                  <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Signup Failed</AlertTitle>
                   <AlertDescription>{state.message}</AlertDescription>
                 </Alert>
               )}
               <SignupButton />
             </form>
+            )}
             <div className="mt-4 text-center text-sm">
               Already have an account?{' '}
               <Link href="/login" className="underline">

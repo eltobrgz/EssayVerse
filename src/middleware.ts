@@ -43,7 +43,11 @@ export async function middleware(request: NextRequest) {
         },
         remove(name: string, options: CookieOptions) {
           // Se o cookie for removido, atualize-o nos cookies da requisição.
-          request.cookies.delete(name)
+          request.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
           response = NextResponse.next({
             request: {
               headers: request.headers,

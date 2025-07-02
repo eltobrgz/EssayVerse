@@ -57,5 +57,5 @@ export async function updateSession(request: NextRequest) {
   // Refreshing the session cookie
   await supabase.auth.getUser();
 
-  return response;
+  return { supabase, response };
 }

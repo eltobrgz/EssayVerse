@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { updateSession } from '@/lib/supabase/middleware';
-import { createClient } from '@/lib/supabase/server';
 
 const protectedRoutes = ['/dashboard', '/essays', '/submit-essay', '/community', '/progress'];
 const authRoutes = ['/login', '/signup'];

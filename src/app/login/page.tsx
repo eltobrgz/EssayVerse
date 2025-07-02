@@ -42,10 +42,12 @@ export default function LoginPage() {
       email,
       password,
     });
+    
+    // Stop loading indicator as soon as the async operation is done.
+    setIsLoading(false);
 
     if (signInError) {
       setError(signInError.message);
-      setIsLoading(false);
       return;
     }
 
@@ -77,6 +79,7 @@ export default function LoginPage() {
                   type="email"
                   placeholder="m@example.com"
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="grid gap-2">
@@ -89,7 +92,7 @@ export default function LoginPage() {
                     Forgot your password?
                   </Link>
                 </div>
-                <Input id="password" name="password" type="password" required />
+                <Input id="password" name="password" type="password" required disabled={isLoading} />
               </div>
 
               {error && (

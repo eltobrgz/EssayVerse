@@ -2,50 +2,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-
-export async function signup(
-  prevState: { message: string; success?: boolean } | null,
-  formData: FormData
-) {
-  const supabase = createClient();
-
-  const fullName = formData.get('fullName') as string;
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
-  const origin = new URL(process.env.NEXT_PUBLIC_BASE_URL!).origin;
-
-  if (!fullName || !email || !password) {
-    return { message: 'Full name, email and password are required.' };
-  }
-
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: fullName,
-      },
-      emailRedirectTo: `${origin}/auth/callback`,
-    },
-  });
-
-  if (error) {
-    return { message: error.message };
-  }
-
-  if (data.user && !data.session) {
-    return {
-      message:
-        'Please check your email to confirm your account before logging in.',
-      success: true,
-    };
-  }
-  
-  revalidatePath('/');
-  redirect('/dashboard');
-}
 
 export async function logout() {
   const supabase = createClient();

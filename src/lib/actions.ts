@@ -7,18 +7,29 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from './supabase/server';
 import { isToday, isYesterday, subDays } from 'date-fns';
 
-const FormSchema = z.object({
+const EssayFormSchema = z.object({
   title: z.string().min(3, { message: 'Title must be at least 3 characters long.'}),
   essayType: z.string({ required_error: 'Please select an essay type.'}),
   essayText: z.string().min(100, { message: 'Essay must be at least 100 characters long.' }),
   image: z.any().optional(),
 });
 
+const PostFormSchema = z.object({
+  title: z.string().min(5, { message: 'Title must be at least 5 characters long.'}),
+  content: z.string().optional(),
+  image: z.instanceof(File).optional(),
+  video: z.instanceof(File).optional(),
+});
+
+
 export type State = {
   errors?: {
     title?: string[];
     essayType?: string[];
     essayText?: string[];
+    content?: string[];
+    image?: string[];
+    video?: string[];
   };
   message?: string | null;
 };
@@ -69,7 +80,7 @@ export async function submitAndScoreEssay(prevState: State, formData: FormData) 
     return { message: 'Authentication error. Please log in again.' };
   }
   
-  const validatedFields = FormSchema.safeParse({
+  const validatedFields = EssayFormSchema.safeParse({
     title: formData.get('title'),
     essayType: formData.get('essayType'),
     essayText: formData.get('essayText'),
@@ -192,4 +203,72 @@ export async function updateUserStreak() {
 
     revalidatePath('/dashboard');
     revalidatePath('/profile');
+}
+
+
+export async function createCommunityPost(prevState: State, formData: FormData) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { message: 'Authentication error. Please log in again.' };
+  }
+
+  const validatedFields = PostFormSchema.safeParse({
+    title: formData.get('title'),
+    content: formData.get('content'),
+    image: formData.get('image'),
+    video: formData.get('video'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: 'Failed to validate post. Please check the fields.',
+    };
+  }
+  
+  const { title, content, image, video } = validatedFields.data;
+  let imageUrl: string | undefined = undefined;
+  let videoUrl: string | undefined = undefined;
+
+  const uploadFile = async (file: File, folder: string) => {
+    if (file && file.size > 0) {
+      const filePath = `${user.id}/${folder}/${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage.from('community_media').upload(filePath, file);
+
+      if (uploadError) {
+        console.error('Upload Error:', uploadError);
+        throw new Error(`Failed to upload ${folder}. Please try again.`);
+      }
+
+      const { data: { publicUrl } } = supabase.storage.from('community_media').getPublicUrl(filePath);
+      return publicUrl;
+    }
+    return undefined;
+  };
+
+  try {
+    imageUrl = await uploadFile(image, 'images');
+    videoUrl = await uploadFile(video, 'videos');
+
+    const { error: insertError } = await supabase.from('community_posts').insert({
+      user_id: user.id,
+      title,
+      content: content || null,
+      image_url: imageUrl,
+      video_url: videoUrl,
+    });
+
+    if (insertError) {
+      console.error('Insert Error:', insertError);
+      return { message: 'Database error: Failed to create post.' };
+    }
+
+    revalidatePath('/community');
+    return { message: 'Post created successfully.' };
+
+  } catch (e: any) {
+    return { message: e.message || 'An unexpected error occurred.' };
+  }
 }

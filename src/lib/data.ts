@@ -46,7 +46,7 @@ export const mockEssays: Essay[] = [
   },
 ];
 
-export const mockCommunityPosts: CommunityPost[] = [
+export const mockCommunityPosts: Omit<CommunityPost, 'profiles'>[] = [
   {
     id: '1',
     user_id: '2',
@@ -57,7 +57,6 @@ export const mockCommunityPosts: CommunityPost[] = [
       avatar_url: 'https://placehold.co/100x100'
     },
     created_at: '2024-07-20T11:45:00Z',
-    replyCount: 5,
   },
   {
     id: '2',
@@ -69,7 +68,6 @@ export const mockCommunityPosts: CommunityPost[] = [
       avatar_url: 'https://placehold.co/100x100'
     },
     created_at: '2024-07-19T18:20:00Z',
-    replyCount: 12,
   },
   {
     id: '3',
@@ -81,7 +79,6 @@ export const mockCommunityPosts: CommunityPost[] = [
       avatar_url: 'https://placehold.co/100x100'
     },
     created_at: '2024-07-18T15:00:00Z',
-    replyCount: 8,
   },
 ];
 

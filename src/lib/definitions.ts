@@ -27,10 +27,12 @@ export type CommunityPost = {
   id: string; 
   user_id: string;
   title: string;
-  content: string;
-  author: Pick<Profile, 'full_name' | 'avatar_url'>;
+  content: string | null;
+  image_url: string | null;
+  video_url: string | null;
   created_at: string;
-  replyCount: number; 
+  // This is a joined property from `profiles`
+  profiles: Pick<Profile, 'full_name' | 'avatar_url'> | null;
 };
 
 export type Badge = {

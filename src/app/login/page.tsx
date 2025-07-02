@@ -39,21 +39,25 @@ export default function LoginPage() {
     
     const supabase = createClient();
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    
-    if (signInError) {
-      setError(signInError.message);
-      setIsLoading(false);
-      return;
-    }
+    try {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
-    // On success, the session cookie is set.
-    // We refresh the page. The middleware will then see the authenticated 
-    // user is on an auth route and will handle the redirect to the dashboard.
-    router.refresh();
+        if (signInError) {
+            throw signInError;
+        }
+
+        // Use router.refresh() to ensure the session is updated on the server
+        // and the middleware can correctly handle the redirect.
+        router.refresh();
+
+    } catch (err: any) {
+        setError(err.message || 'An unexpected error occurred.');
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   return (

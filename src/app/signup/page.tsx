@@ -17,10 +17,8 @@ import { Logo } from '@/components/logo';
 import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
 
 export default function SignupPage() {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -39,33 +37,38 @@ export default function SignupPage() {
     const supabase = createClient();
     const origin = window.location.origin;
 
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
+    try {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+          emailRedirectTo: `${origin}/auth/callback`,
         },
-        emailRedirectTo: `${origin}/auth/callback`,
-      },
-    });
+      });
 
-    setIsLoading(false);
+      if (signUpError) {
+        throw signUpError;
+      }
 
-    if (signUpError) {
-      setError(signUpError.message);
-      return;
-    }
+      // This case handles when the user already exists but is not confirmed.
+      // Supabase sends a new confirmation link.
+      if (data.user && data.user.identities && data.user.identities.length === 0) {
+        throw new Error('Este email já está em uso. Se o email for seu, tente fazer login ou recuperar a senha.');
+      }
+      
+      if (data.user) {
+        setSuccessMessage('Sucesso! Por favor, verifique sua caixa de entrada para confirmar seu email antes de fazer login.');
+      } else {
+         throw new Error('Ocorreu um erro inesperado. Por favor, tente novamente.');
+      }
 
-    if (data.user && data.user.identities && data.user.identities.length === 0) {
-      setError('Este email já está em uso.');
-      return;
-    }
-
-    if (data.user) {
-      setSuccessMessage('Sucesso! Por favor, verifique sua caixa de entrada para confirmar seu email antes de fazer login.');
-    } else {
-      setError('Ocorreu um erro inesperado. Por favor, tente novamente.');
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred.');
+    } finally {
+      setIsLoading(false);
     }
   };
 

@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -6,7 +7,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { createClient } from './supabase/server';
 import { isToday, isYesterday } from 'date-fns';
-import type { Essay, Quiz, QuizOption, QuizQuestion, Resource, State } from './definitions';
+import type { Essay, Profile, Quiz, QuizOption, QuizQuestion, Resource, State } from './definitions';
 
 const EssayFormSchema = z.object({
   title: z.string().min(3, { message: 'Title must be at least 3 characters long.'}),
@@ -390,7 +391,7 @@ export async function getRestrictedResourcesForStudent(studentId: string): Promi
         .from('resources')
         .select('*, profiles(full_name, avatar_url)')
         .eq('visibility', 'RESTRICTED')
-        .filter('creator_id', 'in', `(SELECT teacher_id FROM teacher_student_connections WHERE student_id = '${studentId}')`)
+        .filter('creator_id', 'in', `(SELECT teacher_id FROM teacher_student_connections WHERE student_id = '${studentId}' AND status = 'accepted')`)
         .order('created_at', { ascending: false });
     
     if (error) {
@@ -473,7 +474,8 @@ export async function getSubmissionsForTeacher(teacherId: string) {
   const { data: connections } = await supabase
     .from('teacher_student_connections')
     .select('student_id')
-    .eq('teacher_id', teacherId);
+    .eq('teacher_id', teacherId)
+    .eq('status', 'accepted');
 
   if (!connections || connections.length === 0) return [];
   
@@ -512,6 +514,7 @@ export async function getEssayForTeacher(essayId: string, teacherId: string): Pr
     .select('*')
     .eq('teacher_id', teacherId)
     .eq('student_id', data.user_id)
+    .eq('status', 'accepted')
     .maybeSingle();
 
   if (!connection) {
@@ -570,4 +573,116 @@ export async function submitTeacherFeedback(prevState: State, formData: FormData
   revalidatePath(`/teacher/submissions/${essayId}`);
   revalidatePath(`/essay/${essayId}`);
   redirect(`/teacher/submissions/${essayId}`);
+}
+
+
+// --- Teacher/Student Connection Actions ---
+
+export async function getStudentConnections(studentId: string) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('teacher_student_connections')
+    .select('status, teachers:teacher_id(id, full_name, email, avatar_url)')
+    .eq('student_id', studentId);
+
+  if (error) {
+    console.error('Error fetching student connections:', error);
+    return { accepted: [], pending: [] };
+  }
+  
+  const accepted = data.filter(d => d.status === 'accepted').map(d => d.teachers as Profile);
+  const pending = data.filter(d => d.status === 'pending').map(d => d.teachers as Profile);
+
+  return { accepted, pending };
+}
+
+export async function getTeacherConnections(teacherId: string) {
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from('teacher_student_connections')
+        .select('status, students:student_id(id, full_name, email, avatar_url)')
+        .eq('teacher_id', teacherId);
+
+    if (error) {
+        console.error('Error fetching teacher connections:', error);
+        return { accepted: [], pending: [] };
+    }
+    
+    const accepted = data.filter(d => d.status === 'accepted').map(d => d.students as Profile);
+    const pending = data.filter(d => d.status === 'pending').map(d => d.students as Profile);
+
+    return { accepted, pending };
+}
+
+export async function searchTeachers(query: string): Promise<Profile[]> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, avatar_url')
+        .eq('role', 'teacher')
+        .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
+        .limit(10);
+    
+    if (error) {
+        console.error('Error searching teachers:', error);
+        return [];
+    }
+    return data || [];
+}
+
+export async function sendConnectionRequest(formData: FormData) {
+    const teacherId = formData.get('teacherId') as string;
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { message: 'Not authenticated.' };
+    
+    const { data: existing } = await supabase
+        .from('teacher_student_connections')
+        .select('id')
+        .eq('student_id', user.id)
+        .eq('teacher_id', teacherId)
+        .maybeSingle();
+
+    if (existing) {
+        // This should ideally not happen due to UI filtering, but as a safeguard.
+        return;
+    }
+
+    await supabase.from('teacher_student_connections').insert({
+        student_id: user.id,
+        teacher_id: teacherId,
+        status: 'pending',
+    });
+
+    revalidatePath('/my-teachers');
+}
+
+export async function acceptConnectionRequest(formData: FormData) {
+    const studentId = formData.get('studentId') as string;
+    const supabase = createClient();
+    const { data: { user: teacher } } = await supabase.auth.getUser();
+    if (!teacher) return;
+
+    await supabase
+        .from('teacher_student_connections')
+        .update({ status: 'accepted' })
+        .eq('teacher_id', teacher.id)
+        .eq('student_id', studentId);
+
+    revalidatePath('/teacher/my-students');
+}
+
+export async function rejectConnectionRequest(formData: FormData) {
+    const studentId = formData.get('studentId') as string;
+    const supabase = createClient();
+    const { data: { user: teacher } } = await supabase.auth.getUser();
+    if (!teacher) return;
+
+    await supabase
+        .from('teacher_student_connections')
+        .delete()
+        .eq('teacher_id', teacher.id)
+        .eq('student_id', studentId);
+    
+    revalidatePath('/teacher/my-students');
 }

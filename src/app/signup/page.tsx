@@ -18,6 +18,7 @@ import { Logo } from '@/components/logo';
 import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { signup } from '@/app/auth/actions';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 function SignupButton() {
     const { pending } = useFormStatus();
@@ -74,6 +75,19 @@ export default function SignupPage() {
                 <div className="grid gap-2">
                   <Label htmlFor="password">Password</Label>
                   <Input id="password" name="password" type="password" required />
+                </div>
+                 <div className="grid gap-2">
+                    <Label>I am a</Label>
+                    <RadioGroup defaultValue="student" name="role" className="flex gap-4" required>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="student" id="role-student" />
+                            <Label htmlFor="role-student" className="font-normal">Student</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="teacher" id="role-teacher" />
+                            <Label htmlFor="role-teacher" className="font-normal">Teacher</Label>
+                        </div>
+                    </RadioGroup>
                 </div>
                 
                 {message && !isSuccess && (

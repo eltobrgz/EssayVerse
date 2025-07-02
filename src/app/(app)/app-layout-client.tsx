@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -15,6 +16,7 @@ import {
   Users,
   User as UserIcon,
   ClipboardCheck,
+  UserPlus,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -43,15 +45,23 @@ export function AppLayoutClient({
     { href: '/resources', icon: Library, label: 'Resources' },
     { href: '/community', icon: Users, label: 'Community' },
     { href: '/progress', icon: BarChart2, label: 'Progress' },
-    { href: '/profile', icon: UserIcon, label: 'My Profile' },
   ];
 
-  const teacherNavItems = [
-    { href: '/teacher/resources', icon: School, label: 'Teacher Area' },
-    { href: '/teacher/submissions', icon: ClipboardCheck, label: 'Avaliações' },
-  ];
+  if (profile.role === 'student') {
+    navItems.push({ href: '/my-teachers', icon: UserPlus, label: 'My Teachers' });
+  }
 
-  const allNavItems = profile.role === 'teacher' ? [...navItems, ...teacherNavItems] : navItems;
+  navItems.push({ href: '/profile', icon: UserIcon, label: 'My Profile' });
+
+  if (profile.role === 'teacher') {
+    navItems.push(
+      { href: '/teacher/my-students', icon: Users, label: 'My Students' },
+      { href: '/teacher/resources', icon: School, label: 'Teacher Area' },
+      { href: '/teacher/submissions', icon: ClipboardCheck, label: 'Avaliações' }
+    );
+  }
+
+  const allNavItems = navItems;
 
   return (
     <>

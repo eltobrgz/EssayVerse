@@ -1,3 +1,4 @@
+
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
@@ -29,6 +30,7 @@ export async function signup(formData: FormData) {
     const fullName = formData.get('fullName') as string;
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
+    const role = formData.get('role') as string;
     const supabase = createClient();
 
     const { error } = await supabase.auth.signUp({
@@ -37,6 +39,7 @@ export async function signup(formData: FormData) {
         options: {
             data: {
                 full_name: fullName,
+                role: role,
             },
             emailRedirectTo: `${origin}/auth/callback`,
         },

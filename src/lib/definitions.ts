@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 
 export type Profile = {
@@ -9,6 +10,7 @@ export type Profile = {
   level: number;
   current_streak: number;
   last_login_date: string;
+  email?: string;
 };
 
 export type Essay = {
@@ -102,12 +104,22 @@ export type StudentQuizAttempt = {
   completed_at: string;
 };
 
+export type TeacherStudentConnection = {
+    teacher_id: string;
+    student_id: string;
+    status: 'pending' | 'accepted';
+    // Joined data from a 'profiles' table alias
+    students?: Pick<Profile, 'id' | 'full_name' | 'avatar_url' | 'email'>;
+    teachers?: Pick<Profile, 'id' | 'full_name' | 'avatar_url' | 'email'>;
+}
+
 // This is the type for the state of forms that use server actions.
 export type State = {
   errors?: {
     title?: string[];
     essayType?: string[];
     essayText?: string[];
+    role?: string[];
     content?: string[];
     image?: string[];
     video?: string[];

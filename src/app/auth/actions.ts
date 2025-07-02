@@ -5,32 +5,6 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-export async function login(formData: FormData) {
-  const supabase = createClient();
-
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
-  const next = (formData.get('next') as string) || '/dashboard';
-
-  if (!email || !password) {
-    return redirect('/login?message=Email and password are required.');
-  }
-
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  if (error) {
-    console.error('Login error:', error);
-    return redirect(`/login?message=${encodeURIComponent(error.message)}`);
-  }
-  
-  // Revalidate path to ensure the new session is picked up
-  revalidatePath('/', 'layout');
-  return redirect(next);
-}
-
 export async function signup(
   prevState: { message: string; success?: boolean } | null,
   formData: FormData
@@ -69,7 +43,7 @@ export async function signup(
     };
   }
   
-  revalidatePath('/', 'layout');
+  revalidatePath('/');
   redirect('/dashboard');
 }
 

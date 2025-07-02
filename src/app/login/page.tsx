@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useFormStatus } from 'react-dom';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -13,24 +14,45 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/logo';
-import { login } from '@/app/auth/actions';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useSearchParams } from 'next/navigation';
-
-function LoginButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" className="w-full" disabled={pending}>
-      {pending ? <Loader2 className="animate-spin" /> : 'Login'}
-    </Button>
-  );
-}
+import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get('next');
+  const next = searchParams.get('next') || '/dashboard';
   const urlMessage = searchParams.get('message');
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(urlMessage);
+
+  const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    
+    const supabase = createClient();
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (signInError) {
+      setError(signInError.message);
+      setIsLoading(false);
+      return;
+    }
+
+    // On success, the session is set in the cookie.
+    // The middleware will handle route protection.
+    router.push(next);
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
@@ -46,8 +68,7 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form action={login} className="grid gap-4">
-              {next && <input type="hidden" name="next" value={next} />}
+            <form onSubmit={handleLogin} className="grid gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -71,15 +92,17 @@ export default function LoginPage() {
                 <Input id="password" name="password" type="password" required />
               </div>
 
-              {urlMessage && (
+              {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Login Failed</AlertTitle>
-                  <AlertDescription>{urlMessage}</AlertDescription>
+                  <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
               
-              <LoginButton />
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? <Loader2 className="animate-spin" /> : 'Login'}
+              </Button>
             </form>
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{' '}
